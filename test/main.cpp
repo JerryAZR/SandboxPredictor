@@ -1,9 +1,10 @@
 #include <iostream>
 #include "Testbench.hpp"
 #include "../src/Predictor.hpp"
+#include "../src/Static.hpp"
 
 int main(int argc, char *argv[]) {
-    Predictor basicBP;
+    Static bp;
     Testbench tb;
 
     if (argc < 2) {
@@ -12,6 +13,6 @@ int main(int argc, char *argv[]) {
     }
 
     tb.load_trace(argv[1]);
-    tb.evaluate(&basicBP);
+    tb.evaluate(&bp);
     return 0;
 }

@@ -18,9 +18,11 @@ private:
 public:
     Instruction(uint32_t data = 0) : instr(data) {}
 
+    uint32_t data() {return instr;}
+
     bool is_branch();
 
-    uint32_t offset();
+    int32_t branch_offset();
     uint32_t opcode();
 };
 

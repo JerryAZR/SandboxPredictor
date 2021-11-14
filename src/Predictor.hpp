@@ -10,7 +10,8 @@ typedef struct Prediction
     uint32_t target; // target address (ignored if predicted not-taken)
     int confidence; // confidence (exact definition not yet decided)
 
-    Prediction(bool p = false, uint32_t t = 0) : taken(p), target(t) {}
+    Prediction(bool taken = false, uint32_t target = 0, int confidence = 0)
+    : taken(taken), target(target), confidence(confidence) {}
 } Prediction;
 
 /**
@@ -22,9 +23,9 @@ class Predictor
 private:
     /* data */
 public:
-    Prediction predict(uint32_t pc, Instruction instr) {return Prediction();}
-    void update(uint32_t pc, bool taken) {}
-    void reset() {}
+    virtual Prediction predict(uint32_t pc, Instruction instr) {return Prediction();}
+    virtual void update(uint32_t pc, bool taken) {}
+    virtual void reset() {}
 };
 
 #endif
