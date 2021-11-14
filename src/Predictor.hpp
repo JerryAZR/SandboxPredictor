@@ -28,4 +28,9 @@ public:
     virtual void reset() {}
 };
 
+inline uint32_t clog2(uint32_t x) {
+    uint32_t leading_zero = __builtin_clz(x - 1);
+    return 1 << (32 - leading_zero);
+}
+
 #endif

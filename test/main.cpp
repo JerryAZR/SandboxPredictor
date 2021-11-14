@@ -2,9 +2,10 @@
 #include "Testbench.hpp"
 #include "../src/Predictor.hpp"
 #include "../src/Static.hpp"
+#include "../src/Perceptron.hpp"
 
 int main(int argc, char *argv[]) {
-    Static bp;
+    Perceptron bp;
     Testbench tb;
 
     if (argc < 2) {

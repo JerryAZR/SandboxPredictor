@@ -14,10 +14,12 @@ class Perceptron : public Predictor
 private:
     int* weights;
     int* bias;
-    uint64_t* history;
+    uint64_t history;
     unsigned GHRLen;
     unsigned tableSize;
     unsigned weightLen;
+    unsigned idxMask;
+    int threshold;
 public:
     Perceptron(unsigned GHRLen = PERCEPTRON_GHR_LEN,
                unsigned tableSize = PERCEPTRON_TABLE_SIZE,
