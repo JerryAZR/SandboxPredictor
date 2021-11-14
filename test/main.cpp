@@ -3,9 +3,12 @@
 #include "../src/Predictor.hpp"
 #include "../src/Static.hpp"
 #include "../src/Perceptron.hpp"
+#include "../src/Sandbox.hpp"
 
 int main(int argc, char *argv[]) {
-    Perceptron bp;
+    Perceptron perceptronBP;
+    Static staticBP;
+    Sandbox bp(&staticBP, &perceptronBP);
     Testbench tb;
 
     if (argc < 2) {
