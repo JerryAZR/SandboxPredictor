@@ -1,20 +1,22 @@
 #ifndef __PREDICTOR_H_
 #define __PREDICTOR_H_
-/**
- * Branch predictor base class
- * Static not-taken
- */
 
 #include <stdint.h>
 #include "Instruction.hpp"
 
 typedef struct Prediction
 {
-    bool taken;
-    uint32_t target;
+    bool taken; // true for taken, false for not taken
+    uint32_t target; // target address (ignored if predicted not-taken)
+    int confidence; // confidence (exact definition not yet decided)
+
     Prediction(bool p = false, uint32_t t = 0) : taken(p), target(t) {}
 } Prediction;
 
+/**
+ * Branch predictor base class
+ * Static not-taken predictor
+ */
 class Predictor
 {
 private:

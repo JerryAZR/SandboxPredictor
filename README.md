@@ -1,13 +1,13 @@
 # SandboxPredictor
 
 To compile:  
-``make``
+```make```
 
 To run tests:  
-``./testbench path/to/trace/dir``
+```./run_test path/to/trace/dir```
 
 For example:  
-``./testbench ./trace/mp2``
+```./run_test ./trace/mp2```
 
 ## TODO
 1. Finalize helper classes (e.g. The [instruction](src/Instruction.hpp) class)

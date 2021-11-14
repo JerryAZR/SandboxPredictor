@@ -6,6 +6,9 @@
 #include "parameters.hpp"
 #include "Instruction.hpp"
 
+/**
+ * Perceptron predictor
+ */
 class Perceptron : public Predictor
 {
 private:

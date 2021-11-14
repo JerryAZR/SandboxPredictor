@@ -1,6 +1,6 @@
 all:
-	g++ test/*.cpp src/*.cpp -o testbench
+	g++ test/*.cpp src/*.cpp -o run_test
 
-.PHONY clean
+.PHONY: clean
 clean:
-	rm testbench
+	rm run_test
