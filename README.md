@@ -1,4 +1,4 @@
-# SandboxPredictor
+# Sandbox Predictor
 
 To compile:  
 ```
