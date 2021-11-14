@@ -1,0 +1,8 @@
+#ifndef __PARAMETERS_H_
+#define __PARAMETERS_H_
+
+#define PERCEPTRON_GHR_LEN 8
+#define PERCEPTRON_TABLE_SIZE 128
+#define PERCEPTRON_WEIGHT_LEN 9
+
+#endif
