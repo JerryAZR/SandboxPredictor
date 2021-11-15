@@ -5,15 +5,23 @@ To compile:
 make
 ```
 
-To run tests:  
+To run tests:
 ```
 ./run_test path/to/trace/dir
 ```
 
-For example:  
+For example:
 ```
-./run_test ./trace/mp2
+./run_test ./test_trace
 ```
+
+## Evaluation
+
+We will use [ChampSim](ChampSim) to further evaluate our branch predictors
+
+More execution traces can be downloaded [here](https://www.dropbox.com/sh/hh09tt8myuz0jbp/AACAS5zMWHL7coVuS-RbpUksa?dl=0)
+
+To use these traces, simply put the `.trace.xz` file under the [dpc3_traces](ChampSim/dpc3_traces) folder and run ChampSim accordingly. Detailed instruction can be found [here](ChampSim/README.md)
 
 ## TODO
 1. Finalize helper classes (e.g. The [instruction](src/Instruction.hpp) class)
