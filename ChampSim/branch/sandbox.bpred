@@ -1,19 +1,23 @@
 #include "ooo_cpu.h"
+#include "bp_candidates.h"
+
+Predictor* basicBP;
+Predictor* complexBP;
 
 void O3_CPU::initialize_branch_predictor()
 {
     cout << "CPU " << cpu << " Static always-taken branch predictor" << endl;
+    complexBP = new Perceptron();
+    complexBP->reset();
 }
 
 uint8_t O3_CPU::predict_branch(ooo_model_instr instr)
 {
-    // Note that instr.branch_target is the actual target *after* execution.
-    // A branch would have a non-zero branch_target iff it is known to be taken.
-    // I've tried using a BTB, but the accuracy was still very low
-    return 1;
+    Prediction pred2 = complexBP->predict(instr.ip);
+    return pred2.taken;
 }
 
 void O3_CPU::last_branch_result(ooo_model_instr instr)
 {
-
+    complexBP->update(instr.ip, instr.branch_taken);
 }

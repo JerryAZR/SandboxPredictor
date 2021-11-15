@@ -1,12 +1,7 @@
-#include "Perceptron.hpp"
-#include "Predictor.hpp"
-#include "Instruction.hpp"
-#include <cstring>
+#include "bp_candidates.h"
 #include <cmath>
+#include <cstring>
 
-/**
- * TODO:    Allocate memory and initialize tables
- */
 Perceptron::Perceptron(unsigned GHRLen, unsigned tableSize, unsigned weightLen)
 {
     this->GHRLen = GHRLen;
@@ -22,9 +17,6 @@ Perceptron::Perceptron(unsigned GHRLen, unsigned tableSize, unsigned weightLen)
     history = 0;
 }
 
-/**
- * TODO:    Deallocate table memory
- */
 Perceptron::~Perceptron()
 {
     free(weights);
@@ -39,17 +31,17 @@ Perceptron::~Perceptron()
  * 
  *      Let weights[idx][0] and history LSB be the most recent history.
  */
-Prediction Perceptron::predict(uint32_t pc, Instruction instr)
+Prediction Perceptron::predict(uint32_t pc)
 {
     unsigned idx = pc & idxMask;
     int sum = bias[idx];
-    for (int i = 0; i < GHRLen; i++)
+    for (unsigned i = 0; i < GHRLen; i++)
     {
         if ((history >> i) & 1) sum += weights[idx * GHRLen + i];
         else sum -= weights[idx * GHRLen + i];
     }
     
-    return Prediction(sum >= 0, pc + instr.branch_offset(), sum);
+    return Prediction(sum >= 0, sum);
 }
 
 /**
@@ -59,14 +51,14 @@ void Perceptron::update(uint32_t pc, bool taken)
 {
     unsigned idx = pc & idxMask;
     int sum = bias[idx];
-    for (int i = 0; i < GHRLen; i++)
+    for (unsigned i = 0; i < GHRLen; i++)
     {
         if ((history >> i) & 1) sum += weights[idx * GHRLen + i];
         else sum -= weights[idx * GHRLen + i];
     }
     if ((sum >= 0) != taken || abs(sum) < threshold)
     {
-        for (int i = 0; i < GHRLen; i++)
+        for (unsigned i = 0; i < GHRLen; i++)
         {
             if (taken == ((history >> i) & 1)) weights[idx * GHRLen + i]++;
             else weights[idx * GHRLen + i]--;

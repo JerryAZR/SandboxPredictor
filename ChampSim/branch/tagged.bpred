@@ -1,0 +1,36 @@
+#include "ooo_cpu.h"
+#include <cstring>
+
+#define BTB_SIZE 1024
+
+uint64_t btb_tags[BTB_SIZE];
+
+inline uint32_t get_btb_idx(uint64_t ip) {
+    uint32_t leading_zero = __builtin_clz(BTB_SIZE - 1);
+    uint32_t mask = (1 << (32 - leading_zero)) - 1;
+    return (ip >> 3) & mask;
+}
+
+void O3_CPU::initialize_branch_predictor()
+{
+    cout << "CPU " << cpu << " Static branch predictor" << endl;
+    memset(btb_tags, 0, BTB_SIZE * sizeof(uint64_t));
+}
+
+uint8_t O3_CPU::predict_branch(ooo_model_instr instr)
+{
+    // Predict taken if we have seen this branch taken before
+    uint64_t ip = instr.ip;
+    uint32_t idx = get_btb_idx(ip);
+    uint64_t tag = btb_tags[idx];
+    uint8_t prediction = (ip == tag) ? 1 : 0;
+    return prediction;
+}
+
+void O3_CPU::last_branch_result(ooo_model_instr instr)
+{
+    uint32_t idx = get_btb_idx(instr.ip);
+    if (instr.branch_target) {
+        btb_tags[idx] = instr.ip;
+    }
+}

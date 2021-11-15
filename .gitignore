@@ -12,5 +12,5 @@ ChampSim/inc/champsim.h.bak
 ChampSim/bin/
 ChampSim/obj/
 
-ChampSim/dpc3_traces/*.trace.xz
+ChampSim/dpc3_traces/*.xz
 ChampSim/results_*/

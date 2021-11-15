@@ -1,6 +1,2 @@
 all:
-	g++ test/*.cpp src/*.cpp -o run_test
-
-.PHONY: clean
-clean:
-	rm run_test
+	echo "Please refer to the README.md in ChampSim/ for detailed instructions"
