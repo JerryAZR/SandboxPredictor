@@ -11,6 +11,12 @@
 * Added skeleton for sandbox preidctor in [sandbox.bpred](ChampSim/branch/sandbox.bpred)
 * Changed [static predictor](ChampSim/branch/static.bpred) to predict always-taken (because only the pc is available during branch prediction)
 
+## Useful Links
+
+[Progress Report](https://docs.google.com/document/d/1Kbm3lSivZxMg2NZwRxZXS4C-Lj2yRoAvK5f_yQeKkyU/edit?usp=sharing)
+
+[Final Report](https://docs.google.com) (to be added)
+
 ## Evaluation
 
 We will use [ChampSim](ChampSim) to further evaluate our branch predictors
