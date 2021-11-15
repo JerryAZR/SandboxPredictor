@@ -167,8 +167,9 @@ void O3_CPU::initialize_branch_predictor()
         initialize_perceptron (&perceptrons[cpu][i]);
 }
 
-uint8_t O3_CPU::predict_branch(uint64_t ip)
+uint8_t O3_CPU::predict_branch(ooo_model_instr instr)
 {
+    uint64_t ip = instr.ip;
     uint64_t address = ip;
 
     int	
@@ -234,8 +235,10 @@ uint8_t O3_CPU::predict_branch(uint64_t ip)
     return u[cpu]->prediction;
 }
 
-void O3_CPU::last_branch_result(uint64_t ip, uint8_t taken)
+void O3_CPU::last_branch_result(ooo_model_instr instr)
 {
+    uint64_t ip = instr.ip;
+    uint8_t taken = instr.branch_taken;
     int	
         i,
         y, 

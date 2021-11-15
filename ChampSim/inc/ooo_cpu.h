@@ -210,9 +210,9 @@ class O3_CPU {
     uint32_t check_and_add_lsq(uint32_t rob_index);
 
     // branch predictor
-    uint8_t predict_branch(uint64_t ip);
+    uint8_t predict_branch(ooo_model_instr instr);
     void    initialize_branch_predictor(),
-            last_branch_result(uint64_t ip, uint8_t taken);
+            last_branch_result(ooo_model_instr instr);
 
   // code prefetching
   void l1i_prefetcher_initialize();

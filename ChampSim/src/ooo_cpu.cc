@@ -108,7 +108,7 @@ void O3_CPU::read_from_trace()
 		    num_branch++;
 		    
 		    // handle branch prediction & branch predictor update
-		    uint8_t branch_prediction = predict_branch(IFETCH_BUFFER.entry[ifetch_buffer_index].ip);
+		    uint8_t branch_prediction = predict_branch(IFETCH_BUFFER.entry[ifetch_buffer_index]);
 		    
 		    if(IFETCH_BUFFER.entry[ifetch_buffer_index].branch_taken != branch_prediction)
 		      {
@@ -131,7 +131,7 @@ void O3_CPU::read_from_trace()
 			  }
 		      }
 		    
-		    last_branch_result(IFETCH_BUFFER.entry[ifetch_buffer_index].ip, IFETCH_BUFFER.entry[ifetch_buffer_index].branch_taken);
+		    last_branch_result(IFETCH_BUFFER.entry[ifetch_buffer_index]);
 		  }
 		  
 		  if ((num_reads >= instrs_to_read_this_cycle) || (IFETCH_BUFFER.occupancy == IFETCH_BUFFER.SIZE))
@@ -349,7 +349,7 @@ void O3_CPU::read_from_trace()
                         num_branch++;
 
 			// handle branch prediction & branch predictor update
-			uint8_t branch_prediction = predict_branch(IFETCH_BUFFER.entry[ifetch_buffer_index].ip);
+			uint8_t branch_prediction = predict_branch(IFETCH_BUFFER.entry[ifetch_buffer_index]);
 			uint64_t predicted_branch_target = IFETCH_BUFFER.entry[ifetch_buffer_index].branch_target;
 			if(branch_prediction == 0)
 			  {
@@ -381,7 +381,7 @@ void O3_CPU::read_from_trace()
 			      }
 			  }
 			
-			last_branch_result(IFETCH_BUFFER.entry[ifetch_buffer_index].ip, IFETCH_BUFFER.entry[ifetch_buffer_index].branch_taken);
+			last_branch_result(IFETCH_BUFFER.entry[ifetch_buffer_index]);
                     }
 
                     if ((num_reads >= instrs_to_read_this_cycle) || (IFETCH_BUFFER.occupancy == IFETCH_BUFFER.SIZE))

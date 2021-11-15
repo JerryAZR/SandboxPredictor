@@ -1,0 +1,19 @@
+#include "ooo_cpu.h"
+
+void O3_CPU::initialize_branch_predictor()
+{
+    cout << "CPU " << cpu << " Static branch predictor" << endl;
+}
+
+uint8_t O3_CPU::predict_branch(ooo_model_instr instr)
+{
+    uint64_t ip = instr.ip;
+    uint8_t prediction = instr.branch_target < ip;
+
+    return prediction;
+}
+
+void O3_CPU::last_branch_result(ooo_model_instr instr)
+{
+
+}
