@@ -1,19 +1,13 @@
 # Sandbox Predictor
 
-To compile:  
-```
-make
-```
+## Updates
 
-To run tests:
-```
-./run_test path/to/trace/dir
-```
+### 11.15
 
-For example:
-```
-./run_test ./test_trace
-```
+* Added header file ([bp_candidates.h](ChampSim/inc/bp_candidates.h)) for predictors used by the sandbox predictor
+* Implemented perceptron predictor in [perceptron.cc](ChampSim/branch/bp_candidates/perceptron.cc)
+* Added skeleton for sandbox preidctor in [sandbox.bpred](ChampSim/branch/sandbox.bpred)
+* Changed [static predictor](ChampSim/branch/static.bpred) to predict always-taken (because only the pc is available during branch prediction)
 
 ## Evaluation
 
@@ -24,10 +18,9 @@ More execution traces can be downloaded [here](https://www.dropbox.com/sh/hh09tt
 To use these traces, simply put the `.trace.xz` file under the [dpc3_traces](ChampSim/dpc3_traces) folder and run ChampSim accordingly. Detailed instruction can be found [here](ChampSim/README.md)
 
 ## TODO
-1. Finalize helper classes (e.g. The [instruction](src/Instruction.hpp) class)
-2. Collect more execution traces
-3. Implement one or more simple predictors (e.g. [forward-nt-backward-taken](src/Static.hpp))
-4. Implement one or more complex predictors (e.g. [perceptron](src/Perceptron.hpp))
-5. Implement the sandbox predictor
-6. (Optional) Write a run script to simplify miscellaneous tasks
-7. More to be added later
+
+* Implement one or more simple predictors (e.g. 1-bit bimodal)
+* Implement one or more complex predictors (e.g. [perceptron](ChampSim/branch/bp_candidates/perceptron.cc))
+* Implement the [sandbox predictor](ChampSim/branch/sandbox.bpred)
+* (Optional) Write a run script to simplify miscellaneous tasks
+* More to be added later

@@ -6,7 +6,7 @@ Predictor* complexBP;
 
 void O3_CPU::initialize_branch_predictor()
 {
-    cout << "CPU " << cpu << " Static always-taken branch predictor" << endl;
+    cout << "CPU " << cpu << " Sandbox branch predictor" << endl;
     complexBP = new Perceptron();
     complexBP->reset();
 }
