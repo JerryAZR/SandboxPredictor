@@ -13,13 +13,12 @@ typedef struct Prediction
 } Prediction;
 
 /**
- * Branch predictor base class
- * Static not-taken predictor
+ * @brief Base class for branch predictors
+ *        This base class implements a static not-taken predictor
+ * 
  */
 class Predictor
 {
-private:
-    /* data */
 public:
     virtual Prediction predict(uint32_t pc) {return Prediction();}
     virtual void update(uint32_t pc, bool taken) {}
@@ -32,13 +31,15 @@ inline uint32_t clog2(uint32_t x) {
 }
 
 
-/**
- * Perceptron predictor for sandbox
- */
 #define PERCEPTRON_GHR_LEN 8
 #define PERCEPTRON_TABLE_SIZE 128
 #define PERCEPTRON_WEIGHT_LEN 9
 
+/**
+ * @brief Class for perceptron predictor
+ *        To be used inside the sandbox predictor
+ * 
+ */
 class Perceptron : public Predictor
 {
 private:

@@ -11,12 +11,26 @@ void O3_CPU::initialize_branch_predictor()
     complexBP->reset();
 }
 
+/**
+ * @brief Predict if the input branch instruction will be taken or not
+ * 
+ * @param instr The input branch instruction
+ * @return true (1) if predicted taken, false (0) otherwise
+ * 
+ * TODO: The current sandbox is just a wrapper of the pereptron predictor.
+ *       Need to implement more advanced decision logics.
+ */
 uint8_t O3_CPU::predict_branch(ooo_model_instr instr)
 {
     Prediction pred2 = complexBP->predict(instr.ip);
     return pred2.taken;
 }
 
+/**
+ * @brief Update the internal states of predictors
+ * 
+ * @param instr The branch instruction with known outcome
+ */
 void O3_CPU::last_branch_result(ooo_model_instr instr)
 {
     complexBP->update(instr.ip, instr.branch_taken);

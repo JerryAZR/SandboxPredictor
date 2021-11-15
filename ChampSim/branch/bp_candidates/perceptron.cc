@@ -2,6 +2,13 @@
 #include <cmath>
 #include <cstring>
 
+/**
+ * @brief Construct a new Perceptron object
+ * 
+ * @param GHRLen Length of global history to be considered
+ * @param tableSize Number of entries in the weights/bias table
+ * @param weightLen Bit width of weights and bias
+ */
 Perceptron::Perceptron(unsigned GHRLen, unsigned tableSize, unsigned weightLen)
 {
     this->GHRLen = GHRLen;
@@ -26,10 +33,11 @@ Perceptron::~Perceptron()
 }
 
 /**
- * TODO:    Compute vector product of weights and history
- *          and make prediction based on the result.
+ * @brief Compute the vector product of branch history and weights, then make 
+ *        prediction based on the sign of the product
  * 
- *      Let weights[idx][0] and history LSB be the most recent history.
+ * @param pc Program Counter (address) of input branch instruction
+ * @return Prediction (taken/not-taken and confidence of preidction)
  */
 Prediction Perceptron::predict(uint32_t pc)
 {
@@ -45,7 +53,10 @@ Prediction Perceptron::predict(uint32_t pc)
 }
 
 /**
- * TODO:    Update predictor states using the input branch and its outcome
+ * @brief Update weights and bias based on history and previous branch outcome
+ * 
+ * @param pc Program Counter (address) of input branch instruction
+ * @param taken true if this branch is known to be taken, false otherwise
  */
 void Perceptron::update(uint32_t pc, bool taken)
 {
@@ -71,7 +82,8 @@ void Perceptron::update(uint32_t pc, bool taken)
 }
 
 /**
- * TODO:    Reset the predictor to initial state
+ * @brief Set weights and bias to 0
+ * 
  */
 void Perceptron::reset()
 {
