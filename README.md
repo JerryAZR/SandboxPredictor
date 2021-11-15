@@ -4,6 +4,8 @@
 
 ### 11.15
 
+* Merged [evaluation](https://github.com/JerryAZR/SandboxPredictor/tree/evaluation) branch to [master](https://github.com/JerryAZR/SandboxPredictor/tree/master)
+* The original master branch is moved to [backup](https://github.com/JerryAZR/SandboxPredictor/tree/backup) branch
 * Added header file ([bp_candidates.h](ChampSim/inc/bp_candidates.h)) for predictors used by the sandbox predictor
 * Implemented perceptron predictor in [perceptron.cc](ChampSim/branch/bp_candidates/perceptron.cc)
 * Added skeleton for sandbox preidctor in [sandbox.bpred](ChampSim/branch/sandbox.bpred)
