@@ -25,6 +25,13 @@ More execution traces can be downloaded [here](https://www.dropbox.com/sh/hh09tt
 
 To use these traces, simply put the `.trace.xz` file under the [dpc3_traces](ChampSim/dpc3_traces) folder and run ChampSim accordingly. Detailed instruction can be found [here](ChampSim/README.md)
 
+To compile and run tests using the default parameters, execute `make ${PREDICTOR}`
+and `make run_${PREDICTOR}` at the [root directory](./). For example:
+```
+make sandbox
+make run_sandbox
+```
+
 ## TODO
 
 * Implement one or more simple predictors (e.g. 1-bit bimodal)

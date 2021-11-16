@@ -1,14 +1,14 @@
 #include "ooo_cpu.h"
 #include "bp_candidates.h"
 
-Predictor* basicBP;
-Predictor* complexBP;
+Predictor* basicBP[NUM_CPUS];
+Predictor* complexBP[NUM_CPUS];
 
 void O3_CPU::initialize_branch_predictor()
 {
     cout << "CPU " << cpu << " Sandbox branch predictor" << endl;
-    complexBP = new Perceptron();
-    complexBP->reset();
+    complexBP[cpu] = new Perceptron();
+    complexBP[cpu]->reset();
 }
 
 /**
@@ -22,7 +22,7 @@ void O3_CPU::initialize_branch_predictor()
  */
 uint8_t O3_CPU::predict_branch(ooo_model_instr instr)
 {
-    Prediction pred2 = complexBP->predict(instr.ip);
+    Prediction pred2 = complexBP[cpu]->predict(instr.ip);
     return pred2.taken;
 }
 
@@ -33,5 +33,5 @@ uint8_t O3_CPU::predict_branch(ooo_model_instr instr)
  */
 void O3_CPU::last_branch_result(ooo_model_instr instr)
 {
-    complexBP->update(instr.ip, instr.branch_taken);
+    complexBP[cpu]->update(instr.ip, instr.branch_taken);
 }

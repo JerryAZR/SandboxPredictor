@@ -45,11 +45,10 @@ class Perceptron : public Predictor
 private:
     int* weights;
     int* bias;
-    uint64_t history;
-    unsigned GHRLen;
-    unsigned tableSize;
-    unsigned weightLen;
-    unsigned idxMask;
+    int weightMax, weightMin;
+    uint64_t real_history, spec_history, prev_history;
+    int prev_sum;
+    unsigned GHRLen, tableSize, weightLen;
     int threshold;
 public:
     Perceptron(unsigned GHRLen = PERCEPTRON_GHR_LEN,

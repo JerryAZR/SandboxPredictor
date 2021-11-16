@@ -2,6 +2,9 @@
 #include <cmath>
 #include <cstring>
 
+#define MAX_WEIGHT		((1<<(PERCEPTRON_WEIGHT_LEN-1))-1)
+#define MIN_WEIGHT		(-(MAX_WEIGHT+1))
+
 /**
  * @brief Construct a new Perceptron object
  * 
@@ -14,14 +17,14 @@ Perceptron::Perceptron(unsigned GHRLen, unsigned tableSize, unsigned weightLen)
     this->GHRLen = GHRLen;
     this->tableSize = tableSize;
     this->weightLen = weightLen;
-    idxMask = clog2(tableSize) - 1;
     threshold = ceil(1.93 * GHRLen) + 14;
+    weightMax = ((1<<(weightLen-1))-1);
+    weightMin = (-(weightMax+1));
 
     weights = (int*) malloc(tableSize * GHRLen * sizeof(int));
-    memset(weights, 0, tableSize * GHRLen * sizeof(int));
     bias = (int*) malloc(tableSize * sizeof(int));
-    memset(bias, 0, tableSize * sizeof(int));
-    history = 0;
+
+    reset();
 }
 
 Perceptron::~Perceptron()
@@ -41,14 +44,16 @@ Perceptron::~Perceptron()
  */
 Prediction Perceptron::predict(uint32_t pc)
 {
-    unsigned idx = pc & idxMask;
+    unsigned idx = pc % tableSize;
     int sum = bias[idx];
     for (unsigned i = 0; i < GHRLen; i++)
     {
-        if ((history >> i) & 1) sum += weights[idx * GHRLen + i];
+        if ((spec_history >> i) & 1) sum += weights[idx * GHRLen + i];
         else sum -= weights[idx * GHRLen + i];
     }
-    
+    prev_history = real_history;
+    prev_sum = sum;
+    spec_history = (spec_history << 1) | ((sum >= 0) ? 1 : 0);
     return Prediction(sum >= 0, sum);
 }
 
@@ -60,25 +65,21 @@ Prediction Perceptron::predict(uint32_t pc)
  */
 void Perceptron::update(uint32_t pc, bool taken)
 {
-    unsigned idx = pc & idxMask;
-    int sum = bias[idx];
-    for (unsigned i = 0; i < GHRLen; i++)
-    {
-        if ((history >> i) & 1) sum += weights[idx * GHRLen + i];
-        else sum -= weights[idx * GHRLen + i];
-    }
+    unsigned idx = pc % tableSize;
+    int sum = prev_sum;
     if ((sum >= 0) != taken || abs(sum) < threshold)
     {
         for (unsigned i = 0; i < GHRLen; i++)
         {
-            if (taken == ((history >> i) & 1)) weights[idx * GHRLen + i]++;
+            if (taken == ((prev_history >> i) & 1)) weights[idx * GHRLen + i]++;
             else weights[idx * GHRLen + i]--;
         }
         if (taken) bias[idx]++;
         else bias[idx]--;
     }
 
-    history = (history << 1) | (taken ? 1 : 0);
+    real_history = (real_history << 1) | (taken ? 1 : 0);
+    if ((sum >= 0) != taken) spec_history = real_history;
 }
 
 /**
@@ -89,5 +90,8 @@ void Perceptron::reset()
 {
     memset(weights, 0, tableSize * GHRLen * sizeof(int));
     memset(bias, 0, tableSize * sizeof(int));
-    history = 0;
+    real_history = 0;
+    spec_history = 0;
+    prev_history = 0;
+    prev_sum = 0;
 }
