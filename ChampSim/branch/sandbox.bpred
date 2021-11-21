@@ -4,11 +4,30 @@
 Predictor* basicBP[NUM_CPUS];
 Predictor* complexBP[NUM_CPUS];
 
+// variables to keep track of prediction history
+uint64_t realHistory[NUM_CPUS];
+uint64_t basicBPHistory[NUM_CPUS];
+uint64_t complexBPHistory[NUM_CPUS];
+
+/**
+ * Increased upon mispredict, decreased over time.
+ * Triggers a reset on the corresponding predictor when above certain threshold
+ */
+uint64_t reset_score[NUM_CPUS];
+
 void O3_CPU::initialize_branch_predictor()
 {
     cout << "CPU " << cpu << " Sandbox branch predictor" << endl;
-    complexBP[cpu] = new Perceptron();
+    complexBP[cpu] = new Perceptron(7, 256, 8);
     complexBP[cpu]->reset();
+    basicBP[cpu] = new Gshare(10, 2);
+    basicBP[cpu]->reset();
+
+    // initialize bookkeeping variables
+    realHistory[cpu] = 0;
+    complexBPHistory[cpu] = 0;
+    basicBPHistory[cpu] = 0;
+    reset_score[cpu] = 0;
 }
 
 /**
@@ -17,13 +36,24 @@ void O3_CPU::initialize_branch_predictor()
  * @param instr The input branch instruction
  * @return true (1) if predicted taken, false (0) otherwise
  * 
- * TODO: The current sandbox is just a wrapper of the pereptron predictor.
- *       Need to implement more advanced decision logics.
+ * TODO: Try more basic & complex predictor combinations
+ * and update & reset policies
  */
 uint8_t O3_CPU::predict_branch(ooo_model_instr instr)
 {
+    Prediction pred1 = basicBP[cpu]->predict(instr.ip);
     Prediction pred2 = complexBP[cpu]->predict(instr.ip);
-    return pred2.taken;
+
+    bool final_prediction;
+
+    // Update prediction history
+    basicBPHistory[cpu] = (basicBPHistory[cpu] << 1) | (pred1.taken ? 1 : 0);
+    complexBPHistory[cpu] = (complexBPHistory[cpu] << 1) | (pred2.taken ? 1 : 0);
+
+    // Make the final decision
+    final_prediction = (pred2.confidence > 5) ? pred2.taken : pred1.taken;
+
+    return final_prediction;
 }
 
 /**
@@ -34,4 +64,23 @@ uint8_t O3_CPU::predict_branch(ooo_model_instr instr)
 void O3_CPU::last_branch_result(ooo_model_instr instr)
 {
     complexBP[cpu]->update(instr.ip, instr.branch_taken);
+    basicBP[cpu]->update(instr.ip, instr.branch_taken);
+
+    // Update predictor scoreboard
+    realHistory[cpu] = (realHistory[cpu] << 1) | (instr.branch_taken ? 1 : 0);
+    reset_score[cpu] = (reset_score[cpu] * 3) >> 2; // multiply by 0.75
+
+    if ((realHistory[cpu] & 1) != (complexBPHistory[cpu] & 1))
+    {
+        reset_score[cpu] += 16;
+    }
+
+    // check reset condition
+    // NOTE: Currently we are doing global reset using global history.
+    // Maybe a local policy would perform better
+    if (reset_score[cpu] > 28) {
+        reset_score[cpu] = 0;
+        complexBP[cpu]->reset();
+    }
+
 }

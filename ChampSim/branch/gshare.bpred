@@ -4,7 +4,7 @@
 #define GLOBAL_HISTORY_MASK (1 << GLOBAL_HISTORY_LENGTH) - 1
 int branch_history_vector[NUM_CPUS];
 
-#define GS_HISTORY_TABLE_SIZE 16384
+#define GS_HISTORY_TABLE_SIZE (1 << GLOBAL_HISTORY_LENGTH)
 int gs_history_table[NUM_CPUS][GS_HISTORY_TABLE_SIZE];
 int my_last_prediction[NUM_CPUS];
 

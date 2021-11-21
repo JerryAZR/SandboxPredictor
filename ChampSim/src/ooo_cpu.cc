@@ -1237,24 +1237,21 @@ void O3_CPU::add_load_queue(uint32_t rob_index, uint32_t data_index)
     if (rob_index != ROB.head) {
         if ((int)ROB.head <= prior) {
             for (int i=prior; i>=(int)ROB.head; i--) {
-                if (LQ.entry[lq_index].producer_id != UINT64_MAX)
-                    break;
+                if (LQ.entry[lq_index].producer_id != UINT64_MAX) break;
 
-                    mem_RAW_dependency(i, rob_index, data_index, lq_index);
+                mem_RAW_dependency(i, rob_index, data_index, lq_index);
             }
         }
         else {
             for (int i=prior; i>=0; i--) {
-                if (LQ.entry[lq_index].producer_id != UINT64_MAX)
-                    break;
+                if (LQ.entry[lq_index].producer_id != UINT64_MAX) break;
 
-                    mem_RAW_dependency(i, rob_index, data_index, lq_index);
+                mem_RAW_dependency(i, rob_index, data_index, lq_index);
             }
             for (int i=ROB.SIZE-1; i>=(int)ROB.head; i--) { 
-                if (LQ.entry[lq_index].producer_id != UINT64_MAX)
-                    break;
+                if (LQ.entry[lq_index].producer_id != UINT64_MAX) break;
 
-                    mem_RAW_dependency(i, rob_index, data_index, lq_index);
+                mem_RAW_dependency(i, rob_index, data_index, lq_index);
             }
         }
     }
@@ -1854,26 +1851,24 @@ void O3_CPU::complete_instr_fetch(PACKET_QUEUE *queue, uint8_t is_it_tlb)
     uint64_t complete_ip = queue->entry[index].ip;
 
     if(is_it_tlb)
-      {
-	uint64_t instruction_physical_address = (queue->entry[index].instruction_pa << LOG2_PAGE_SIZE) | (complete_ip & ((1 << LOG2_PAGE_SIZE) - 1));
-	
-	// mark the appropriate instructions in the IFETCH_BUFFER as translated and ready to fetch
-	for(uint32_t j=0; j<IFETCH_BUFFER.SIZE; j++)
-	  {
-	    if(((IFETCH_BUFFER.entry[j].ip)>>LOG2_PAGE_SIZE) == ((complete_ip)>>LOG2_PAGE_SIZE))
-	      {
-		IFETCH_BUFFER.entry[j].translated = COMPLETED;
-		// we did not fetch this instruction's cache line, but we did translated it
-		IFETCH_BUFFER.entry[j].fetched = 0;
-		// recalculate a physical address for this cache line based on the translated physical page address
-		uint64_t instr_pa = (queue->entry[index].instruction_pa << LOG2_PAGE_SIZE) | ((IFETCH_BUFFER.entry[j].ip) & ((1 << LOG2_PAGE_SIZE) - 1));
-		IFETCH_BUFFER.entry[j].instruction_pa = instr_pa;
-	      }
-	  }
+    {        
+        // mark the appropriate instructions in the IFETCH_BUFFER as translated and ready to fetch
+        for(uint32_t j=0; j<IFETCH_BUFFER.SIZE; j++)
+        {
+            if(((IFETCH_BUFFER.entry[j].ip)>>LOG2_PAGE_SIZE) == ((complete_ip)>>LOG2_PAGE_SIZE))
+            {
+            IFETCH_BUFFER.entry[j].translated = COMPLETED;
+            // we did not fetch this instruction's cache line, but we did translated it
+            IFETCH_BUFFER.entry[j].fetched = 0;
+            // recalculate a physical address for this cache line based on the translated physical page address
+            uint64_t instr_pa = (queue->entry[index].instruction_pa << LOG2_PAGE_SIZE) | ((IFETCH_BUFFER.entry[j].ip) & ((1 << LOG2_PAGE_SIZE) - 1));
+            IFETCH_BUFFER.entry[j].instruction_pa = instr_pa;
+            }
+        }
 
-	// remove this entry
-	queue->remove_queue(&queue->entry[index]);
-      }
+        // remove this entry
+        queue->remove_queue(&queue->entry[index]);
+    }
     else
       {
 	// this is the L1I cache, so instructions are now fully fetched, so mark them as such

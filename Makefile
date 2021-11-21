@@ -6,25 +6,25 @@ LLC_REP=lru
 
 N_WARM=1
 N_SIM=10
-TRACE=600.perlbench_s-210B.champsimtrace.xz
+TRACE_ID=$(shell ls ChampSim/dpc3_traces/ | head -1)
+TRACE=$(shell ls ChampSim/dpc3_traces/ | grep $(TRACE_ID))
 
 .phony: all clean
 
 all:
 	echo "Please refer to the README.md in ChampSim/ for detailed instructions"
 
-sandbox:
+sandbox perceptron static bimodal gshare:
 	cd ChampSim && \
 	bash build_champsim.sh \
-	sandbox $(L1I_PRE) $(L1D_PRE) $(L2_PRE) $(LLC_PRE) $(LLC_REP) 1
+	$@ $(L1I_PRE) $(L1D_PRE) $(L2_PRE) $(LLC_PRE) $(LLC_REP) 1
 
-run_sandbox:
+run_sandbox run_perceptron run_static run_bimodal run_gshare:
 	cd ChampSim && \
-	bash run_champsim.sh \
-	sandbox-$(L1I_PRE)-$(L1D_PRE)-$(L2_PRE)-$(LLC_PRE)-$(LLC_REP)-1core \
-	$(N_WARM) $(N_SIM) $(TRACE)
-	tail -13 ChampSim/results_$(N_SIM)M/$(TRACE)-\
-	sandbox-$(L1I_PRE)-$(L1D_PRE)-$(L2_PRE)-$(LLC_PRE)-$(LLC_REP)-1core.txt
+	bash run_champsim.sh $(subst run_,,$@)-$(L1I_PRE)-$(L1D_PRE)-$(L2_PRE)-\
+	$(LLC_PRE)-$(LLC_REP)-1core $(N_WARM) $(N_SIM) $(TRACE)
+	grep "Accuracy\|IPC" ChampSim/results_$(N_SIM)M/$(TRACE)-$(subst run_,,$@)-\
+	$(L1I_PRE)-$(L1D_PRE)-$(L2_PRE)-$(LLC_PRE)-$(LLC_REP)-1core.txt
 
 clean:
 	cd ChampSim && make clean

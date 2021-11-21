@@ -59,11 +59,11 @@
 
 /* history length for the global history shift register */
 
-#define PERCEPTRON_HISTORY	24
+#define PERCEPTRON_HISTORY	7
 
 /* number of perceptrons */
 
-#define NUM_PERCEPTRONS		163
+#define NUM_PERCEPTRONS		512
 
 /* number of bits per weight */
 
@@ -237,7 +237,6 @@ uint8_t O3_CPU::predict_branch(ooo_model_instr instr)
 
 void O3_CPU::last_branch_result(ooo_model_instr instr)
 {
-    uint64_t ip = instr.ip;
     uint8_t taken = instr.branch_taken;
     int	
         i,

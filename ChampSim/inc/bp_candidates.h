@@ -6,7 +6,7 @@
 typedef struct Prediction
 {
     bool taken; // true for taken, false for not taken
-    int confidence; // confidence (exact definition not yet decided)
+    unsigned confidence; // confidence (high value -> very confident)
 
     Prediction(bool taken = false, int confidence = 0)
     : taken(taken), confidence(confidence) {}
@@ -14,14 +14,14 @@ typedef struct Prediction
 
 /**
  * @brief Base class for branch predictors
- *        This base class implements a static not-taken predictor
+ *        This base class implements a static taken predictor
  * 
  */
 class Predictor
 {
 public:
-    virtual Prediction predict(uint32_t pc) {return Prediction();}
-    virtual void update(uint32_t pc, bool taken) {}
+    virtual Prediction predict(uint64_t pc) {return Prediction(true, 0);}
+    virtual void update(uint64_t pc, bool taken) {}
     virtual void reset() {}
 };
 
@@ -29,6 +29,39 @@ inline uint32_t clog2(uint32_t x) {
     uint32_t leading_zero = __builtin_clz(x - 1);
     return 1 << (32 - leading_zero);
 }
+
+typedef struct pstate
+{
+    uint64_t history;
+    int sum;
+
+    pstate(uint64_t h = 0, int s = 0) : history(h), sum(s) {}
+} pstate;
+
+
+#define QUEUE_SIZE 4
+class Pstate_queue
+{
+    private:
+        unsigned head; // dequeue from head
+        unsigned tail; // enqueue at tail
+        pstate storage[QUEUE_SIZE];
+    public:
+        Pstate_queue() : head(0), tail(0) {}
+        pstate dequeue() {
+            pstate retval = storage[head];
+            head = (head + 1) % QUEUE_SIZE;
+            return retval;
+        }
+        void enqueue(pstate state) {
+            storage[tail] = state;
+            tail = (tail + 1) % QUEUE_SIZE;
+        }
+        void reset() {
+            head = 0;
+            tail = 0;
+        }
+};
 
 
 #define PERCEPTRON_GHR_LEN 8
@@ -46,18 +79,46 @@ private:
     int* weights;
     int* bias;
     int weightMax, weightMin;
-    uint64_t real_history, spec_history, prev_history;
-    int prev_sum;
+    uint64_t real_history, spec_history;
+    Pstate_queue pending_bp;
     unsigned GHRLen, tableSize, weightLen;
     int threshold;
+
+    unsigned get_idx(uint64_t pc);
 public:
     Perceptron(unsigned GHRLen = PERCEPTRON_GHR_LEN,
                unsigned tableSize = PERCEPTRON_TABLE_SIZE,
                unsigned weightLen = PERCEPTRON_WEIGHT_LEN);
     ~Perceptron();
 
-    Prediction predict(uint32_t pc);
-    void update(uint32_t pc, bool taken);
+    Prediction predict(uint64_t pc);
+    void update(uint64_t pc, bool taken);
+    void reset();
+};
+
+#define GSHARE_GHR_LEN 8
+#define GSHARE_COUNTER_LEN 2
+
+/**
+ * @brief Class for gshare predictor
+ * 
+ */
+class Gshare : public Predictor
+{
+private:
+    unsigned GHRLen;
+    uint64_t history;
+    int counterMax, counterMin;
+    int* table;
+
+    unsigned get_idx(uint64_t pc);
+public:
+    Gshare(unsigned GHRLen = GSHARE_GHR_LEN,
+           unsigned counterLen = GSHARE_COUNTER_LEN);
+    ~Gshare();
+
+    Prediction predict(uint64_t pc);
+    void update(uint64_t pc, bool taken);
     void reset();
 };
 

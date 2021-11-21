@@ -1,9 +1,7 @@
 #include "bp_candidates.h"
 #include <cmath>
 #include <cstring>
-
-#define MAX_WEIGHT		((1<<(PERCEPTRON_WEIGHT_LEN-1))-1)
-#define MIN_WEIGHT		(-(MAX_WEIGHT+1))
+#include <stdlib.h>
 
 /**
  * @brief Construct a new Perceptron object
@@ -35,6 +33,11 @@ Perceptron::~Perceptron()
     bias = NULL;
 }
 
+unsigned Perceptron::get_idx(uint64_t pc)
+{
+    return pc % tableSize;
+}
+
 /**
  * @brief Compute the vector product of branch history and weights, then make 
  *        prediction based on the sign of the product
@@ -42,19 +45,18 @@ Perceptron::~Perceptron()
  * @param pc Program Counter (address) of input branch instruction
  * @return Prediction (taken/not-taken and confidence of preidction)
  */
-Prediction Perceptron::predict(uint32_t pc)
+Prediction Perceptron::predict(uint64_t pc)
 {
-    unsigned idx = pc % tableSize;
+    unsigned idx = get_idx(pc);
     int sum = bias[idx];
     for (unsigned i = 0; i < GHRLen; i++)
     {
         if ((spec_history >> i) & 1) sum += weights[idx * GHRLen + i];
         else sum -= weights[idx * GHRLen + i];
     }
-    prev_history = real_history;
-    prev_sum = sum;
+    pending_bp.enqueue(pstate(spec_history, sum));
     spec_history = (spec_history << 1) | ((sum >= 0) ? 1 : 0);
-    return Prediction(sum >= 0, sum);
+    return Prediction(sum >= 0, abs(sum));
 }
 
 /**
@@ -63,19 +65,35 @@ Prediction Perceptron::predict(uint32_t pc)
  * @param pc Program Counter (address) of input branch instruction
  * @param taken true if this branch is known to be taken, false otherwise
  */
-void Perceptron::update(uint32_t pc, bool taken)
+void Perceptron::update(uint64_t pc, bool taken)
 {
-    unsigned idx = pc % tableSize;
-    int sum = prev_sum;
+    unsigned idx = get_idx(pc);
+    pstate state = pending_bp.dequeue();
+    int sum = state.sum;
+    uint64_t prev_history = state.history;
     if ((sum >= 0) != taken || abs(sum) < threshold)
     {
         for (unsigned i = 0; i < GHRLen; i++)
         {
-            if (taken == ((prev_history >> i) & 1)) weights[idx * GHRLen + i]++;
-            else weights[idx * GHRLen + i]--;
+            if (taken == ((prev_history >> i) & 1))
+            {
+                if (weights[idx * GHRLen + i] < weightMax)
+                {
+                    weights[idx * GHRLen + i]++;
+                }
+            }
+            else if(weights[idx * GHRLen + i] > weightMin) {
+                weights[idx * GHRLen + i]--;
+            }
         }
-        if (taken) bias[idx]++;
-        else bias[idx]--;
+        if (taken)
+        {
+            if (bias[idx] < weightMax) bias[idx]++;
+        }
+        else if (bias[idx] > weightMin)
+        {
+            bias[idx]--;
+        }
     }
 
     real_history = (real_history << 1) | (taken ? 1 : 0);
@@ -92,6 +110,5 @@ void Perceptron::reset()
     memset(bias, 0, tableSize * sizeof(int));
     real_history = 0;
     spec_history = 0;
-    prev_history = 0;
-    prev_sum = 0;
+    pending_bp.reset();
 }
