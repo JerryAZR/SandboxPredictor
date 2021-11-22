@@ -1,13 +1,19 @@
 #include "ooo_cpu.h"
 #include "bp_candidates.h"
 
+#define NUM_BUCKET 8
+
 Predictor* basicBP[NUM_CPUS];
 Predictor* complexBP[NUM_CPUS];
 
 // variables to keep track of prediction history
-uint64_t realHistory[NUM_CPUS];
-uint64_t basicBPHistory[NUM_CPUS];
-uint64_t complexBPHistory[NUM_CPUS];
+uint64_t realHistory[NUM_CPUS][NUM_BUCKET];
+uint64_t basicBPHistory[NUM_CPUS][NUM_BUCKET];
+uint64_t complexBPHistory[NUM_CPUS][NUM_BUCKET];
+
+// Acciracies
+int basicBPCorrect[NUM_CPUS][NUM_BUCKET];
+int complexBPCorrect[NUM_CPUS][NUM_BUCKET];
 
 /**
  * Increased upon mispredict, decreased over time.
@@ -24,9 +30,11 @@ void O3_CPU::initialize_branch_predictor()
     basicBP[cpu]->reset();
 
     // initialize bookkeeping variables
-    realHistory[cpu] = 0;
-    complexBPHistory[cpu] = 0;
-    basicBPHistory[cpu] = 0;
+    for (int i = 0; i < NUM_BUCKET; i++){
+        realHistory[cpu][i] = 0;
+        complexBPHistory[cpu][i] = 0;
+        basicBPHistory[cpu][i] = 0;
+    }
     reset_score[cpu] = 0;
 }
 
@@ -47,11 +55,14 @@ uint8_t O3_CPU::predict_branch(ooo_model_instr instr)
     bool final_prediction;
 
     // Update prediction history
-    basicBPHistory[cpu] = (basicBPHistory[cpu] << 1) | (pred1.taken ? 1 : 0);
-    complexBPHistory[cpu] = (complexBPHistory[cpu] << 1) | (pred2.taken ? 1 : 0);
+    basicBPHistory[cpu][instr.ip % 4] = (basicBPHistory[cpu][instr.ip % 4] << 1) | (pred1.taken ? 1 : 0);
+    complexBPHistory[cpu][instr.ip % 4] = (complexBPHistory[cpu][instr.ip % 4] << 1) | (pred2.taken ? 1 : 0);
+    // basicBPHistory[cpu] = (basicBPHistory[cpu] << 1) | (pred1.taken ? 1 : 0);
+    // complexBPHistory[cpu] = (complexBPHistory[cpu] << 1) | (pred2.taken ? 1 : 0);
 
     // Make the final decision
-    final_prediction = (pred2.confidence > 5) ? pred2.taken : pred1.taken;
+    // final_prediction = (pred2.confidence > 5) ? pred2.taken : pred1.taken;
+    final_prediction = (basicBPCorrect[cpu][instr.ip % 4] < complexBPCorrect[cpu][instr.ip % 4]) ? pred2.taken : pred1.taken;
 
     return final_prediction;
 }
@@ -67,12 +78,18 @@ void O3_CPU::last_branch_result(ooo_model_instr instr)
     basicBP[cpu]->update(instr.ip, instr.branch_taken);
 
     // Update predictor scoreboard
-    realHistory[cpu] = (realHistory[cpu] << 1) | (instr.branch_taken ? 1 : 0);
+    realHistory[cpu][instr.ip % 4] = (realHistory[cpu][instr.ip % 4] << 1) | (instr.branch_taken ? 1 : 0);
     reset_score[cpu] = (reset_score[cpu] * 3) >> 2; // multiply by 0.75
 
-    if ((realHistory[cpu] & 1) != (complexBPHistory[cpu] & 1))
-    {
+    // If prediction is wrong, update reset score
+    if ((realHistory[cpu][instr.ip % 4] & 1) != (complexBPHistory[cpu][instr.ip % 4] & 1)){
         reset_score[cpu] += 16;
+    } else { // If prediction is correst, update accuracy counts
+        complexBPCorrect[cpu][instr.ip % 4]++;
+    }
+
+    if ((realHistory[cpu][instr.ip % 4] & 1) == (basicBPHistory[cpu][instr.ip % 4] & 1)){
+        basicBPCorrect[cpu][instr.ip % 4]++;
     }
 
     // check reset condition

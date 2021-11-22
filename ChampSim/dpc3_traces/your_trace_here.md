@@ -1,1 +1,0 @@
-Put your `.trace.xz` files here to be recognized by ChampSim
