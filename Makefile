@@ -26,5 +26,8 @@ run_sandbox run_perceptron run_static run_bimodal run_gshare:
 	grep "Accuracy\|IPC" ChampSim/results_$(N_SIM)M/$(TRACE)-$(subst run_,,$@)-\
 	$(L1I_PRE)-$(L1D_PRE)-$(L2_PRE)-$(LLC_PRE)-$(LLC_REP)-1core.txt
 
+analyze:
+	cd ChampSim && python3 analyze.py branch.csv
+
 clean:
 	cd ChampSim && make clean

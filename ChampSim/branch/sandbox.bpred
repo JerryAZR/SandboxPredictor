@@ -1,6 +1,9 @@
 #include "ooo_cpu.h"
 #include "bp_candidates.h"
 
+#include <fstream>
+#include <sstream>
+
 #define NUM_BUCKET 8
 
 Predictor* basicBP[NUM_CPUS];
@@ -10,10 +13,19 @@ Predictor* complexBP[NUM_CPUS];
 uint64_t realHistory[NUM_CPUS][NUM_BUCKET];
 uint64_t basicBPHistory[NUM_CPUS][NUM_BUCKET];
 uint64_t complexBPHistory[NUM_CPUS][NUM_BUCKET];
+bool predicted;
+unsigned branchCount;
 
 // Acciracies
 int basicBPCorrect[NUM_CPUS][NUM_BUCKET];
 int complexBPCorrect[NUM_CPUS][NUM_BUCKET];
+
+// Prediction log files
+const std::string fname = "branch.csv";
+std::ofstream fout;
+
+// helper functions
+std::string int2hex(uint64_t pc);
 
 /**
  * Increased upon mispredict, decreased over time.
@@ -36,6 +48,11 @@ void O3_CPU::initialize_branch_predictor()
         basicBPHistory[cpu][i] = 0;
     }
     reset_score[cpu] = 0;
+
+    // Open log file
+    fout.open(fname);
+    fout << "ID, PC, Predicted, Actual" << std::endl;
+    branchCount = 0;
 }
 
 /**
@@ -63,6 +80,9 @@ uint8_t O3_CPU::predict_branch(ooo_model_instr instr)
     // Make the final decision
     // final_prediction = (pred2.confidence > 5) ? pred2.taken : pred1.taken;
     final_prediction = (basicBPCorrect[cpu][instr.ip % 4] < complexBPCorrect[cpu][instr.ip % 4]) ? pred2.taken : pred1.taken;
+
+    // Prepare for log generation
+    predicted = final_prediction;
 
     return final_prediction;
 }
@@ -95,9 +115,20 @@ void O3_CPU::last_branch_result(ooo_model_instr instr)
     // check reset condition
     // NOTE: Currently we are doing global reset using global history.
     // Maybe a local policy would perform better
-    if (reset_score[cpu] > 28) {
+    if (reset_score[cpu] > 2800) {
         reset_score[cpu] = 0;
         complexBP[cpu]->reset();
     }
 
+    // write to log
+    fout << branchCount++ << ", ";
+    fout << int2hex(instr.ip) << ", ";
+    fout << predicted << ", ";
+    fout << (instr.branch_taken == 1 ? "1" : "0") << std::endl;
+}
+
+std::string int2hex(uint64_t pc) {
+    std::stringstream sstream;
+    sstream << std::hex << pc;
+    return sstream.str();
 }

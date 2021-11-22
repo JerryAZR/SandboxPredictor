@@ -2,6 +2,18 @@
 
 ## Updates
 
+### 11.22
+
+* Modified [sandbox.bpred](ChampSim/branch/sandbox.bpred) to write branch
+prediction log to [branch.csv](ChampSim/branch.csv)
+* Added python script for branch prediction analysis ([analyze.py](ChampSim/analyze.py))
+* **NOTE:** The python script depends on plotille, which is a command-line
+alternative to matplotlib and can be installed using `pip`.
+* **TODO:** I've noticed that the majority of mispredictions happen on a small
+group of branches. Maybe we should give these "hard-to-predict" branches some
+special treatment? (For example, use both local and global history and/or use an
+actual neural network instead of a single perceptron for each one of them)
+
 ### 11.21
 
 * Added gshare predictor in [gshare.cc](ChampSim/branch/bp_candidates/gshare.cc)
