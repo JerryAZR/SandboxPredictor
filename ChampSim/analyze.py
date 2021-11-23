@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+from os import access
 import sys
 import numpy as np
 import plotille as pl
@@ -56,8 +57,8 @@ if __name__ == "__main__":
     # Because the number of mispredictions is known, we can simply declare an
     # array with enough space
     mispredctions = np.empty(shape=num_mispred, dtype=int)
-    local_id = 0 # branch id (local to this branch)
-    idx = 0
+    local_id = 0 # branch id (local to this branch).
+    idx = 0  # index in the misprediction array
 
     line = bp_log.readline()
     while (line != ""):
@@ -76,3 +77,5 @@ if __name__ == "__main__":
     fig = pl.Figure()
     fig.histogram(mispredctions, bins=10)
     print(fig.show())
+    accuracy = (local_id - idx) / local_id
+    print("Accuracy of branch {:08x}: {:.2%}".format(target_pc, accuracy))
