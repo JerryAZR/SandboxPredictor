@@ -8,7 +8,7 @@ Tournament::Tournament(Predictor* bp1, Predictor* bp2, unsigned nbuckets)
     realHistory = (uint64_t*) malloc(numBuckets * sizeof(uint64_t));
     bp1History = (uint64_t*) malloc(numBuckets * sizeof(uint64_t));
     bp2Histpry = (uint64_t*) malloc(numBuckets * sizeof(uint64_t));
-    preference = (uint32_t*) malloc(numBuckets * sizeof(uint32_t));
+    preference = (int32_t*) malloc(numBuckets * sizeof(uint32_t));
 
     reset();
 }
@@ -62,7 +62,7 @@ void Tournament::reset() {
     memset(realHistory, 0, numBuckets * sizeof(uint64_t));
     memset(bp1History, 0, numBuckets * sizeof(uint64_t));
     memset(bp2Histpry, 0, numBuckets * sizeof(uint64_t));
-    memset(preference, 0, numBuckets * sizeof(uint32_t));
+    memset(preference, 0, numBuckets * sizeof(int32_t));
     bp1->reset();
     bp2->reset();
 }

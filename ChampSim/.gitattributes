@@ -1,0 +1,6 @@
+*.bpred linguist-language=C++
+*.l2c_pref linguist-language=C++
+*.llc_pref linguist-language=C++
+*.l1d_pref linguist-language=C++
+*.l1i_pref linguist-language=C++
+*.llc_repl linguist-language=C++

@@ -145,7 +145,7 @@ private:
     uint64_t* realHistory;
     uint64_t* bp1History;
     uint64_t* bp2Histpry;
-    uint32_t* preference;
+    int32_t* preference;
     
 public:
     Tournament(Predictor* bp1, Predictor* bp2, unsigned nbuckets = NUM_BUCKET);
