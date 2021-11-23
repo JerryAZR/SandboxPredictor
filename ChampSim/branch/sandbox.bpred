@@ -72,8 +72,8 @@ uint8_t O3_CPU::predict_branch(ooo_model_instr instr)
     bool final_prediction;
 
     // Update prediction history
-    basicBPHistory[cpu][instr.ip % 4] = (basicBPHistory[cpu][instr.ip % 4] << 1) | (pred1.taken ? 1 : 0);
-    complexBPHistory[cpu][instr.ip % 4] = (complexBPHistory[cpu][instr.ip % 4] << 1) | (pred2.taken ? 1 : 0);
+    basicBPHistory[cpu][instr.ip % NUM_BUCKET] = (basicBPHistory[cpu][instr.ip % NUM_BUCKET] << 1) | (pred1.taken ? 1 : 0);
+    complexBPHistory[cpu][instr.ip % NUM_BUCKET] = (complexBPHistory[cpu][instr.ip % NUM_BUCKET] << 1) | (pred2.taken ? 1 : 0);
     // basicBPHistory[cpu] = (basicBPHistory[cpu] << 1) | (pred1.taken ? 1 : 0);
     // complexBPHistory[cpu] = (complexBPHistory[cpu] << 1) | (pred2.taken ? 1 : 0);
 
@@ -98,18 +98,18 @@ void O3_CPU::last_branch_result(ooo_model_instr instr)
     basicBP[cpu]->update(instr.ip, instr.branch_taken);
 
     // Update predictor scoreboard
-    realHistory[cpu][instr.ip % 4] = (realHistory[cpu][instr.ip % 4] << 1) | (instr.branch_taken ? 1 : 0);
+    realHistory[cpu][instr.ip % NUM_BUCKET] = (realHistory[cpu][instr.ip % NUM_BUCKET] << 1) | (instr.branch_taken ? 1 : 0);
     reset_score[cpu] = (reset_score[cpu] * 3) >> 2; // multiply by 0.75
 
     // If prediction is wrong, update reset score
-    if ((realHistory[cpu][instr.ip % 4] & 1) != (complexBPHistory[cpu][instr.ip % 4] & 1)){
+    if ((realHistory[cpu][instr.ip % NUM_BUCKET] & 1) != (complexBPHistory[cpu][instr.ip % NUM_BUCKET] & 1)){
         reset_score[cpu] += 16;
     } else { // If prediction is correst, update accuracy counts
-        complexBPCorrect[cpu][instr.ip % 4]++;
+        complexBPCorrect[cpu][instr.ip % NUM_BUCKET]++;
     }
 
-    if ((realHistory[cpu][instr.ip % 4] & 1) == (basicBPHistory[cpu][instr.ip % 4] & 1)){
-        basicBPCorrect[cpu][instr.ip % 4]++;
+    if ((realHistory[cpu][instr.ip % NUM_BUCKET] & 1) == (basicBPHistory[cpu][instr.ip % NUM_BUCKET] & 1)){
+        basicBPCorrect[cpu][instr.ip % NUM_BUCKET]++;
     }
 
     // check reset condition
