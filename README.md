@@ -2,6 +2,16 @@
 
 ## Updates
 
+### 11.23
+
+* Moved original sandbox predictor to class `Tournament` in
+[tournament.cc](ChampSim/branch/bp_candidates/tournament.cc)
+* Moved log generation from [sandbox.bpred](ChampSim/branch/sandbox.bpred) to
+[bplog.bpred](ChampSim/branch/bplog.bpred). The original sandbox predictor no
+longer generates branch prediction log.
+* Removed branch.csv from git tree because the file becomes too large after
+including global and local history,
+
 ### 11.22
 
 * Modified [sandbox.bpred](ChampSim/branch/sandbox.bpred) to write branch
@@ -20,7 +30,6 @@ actual neural network instead of a single perceptron for each one of them)
 * Added reset logic in [sandbox.bpred](ChampSim/branch/sandbox.bpred)
 * **TODO:** Experiment with more reset & update policies, including both local
 and global ones
-* **TODO:** Analyze (mis)prediction patterns and try to find the bottlenecks
 
 ### 11.15
 
@@ -36,10 +45,6 @@ predictors used by the sandbox predictor
 [sandbox.bpred](ChampSim/branch/sandbox.bpred)
 * Changed [static predictor](ChampSim/branch/static.bpred) to predict
 always-taken (because only the pc is available during branch prediction)
-* **TODO:** Implement one or more simple predictors (e.g. 1-bit bimodal)
-* **TODO:** Implement one or more complex predictors
-(e.g. [perceptron](ChampSim/branch/bp_candidates/perceptron.cc))
-* **TODO:** Implement the [sandbox predictor](ChampSim/branch/sandbox.bpred)
 * **TODO:** (Optional) Write a run script to simplify miscellaneous tasks
 
 ## Useful Links
