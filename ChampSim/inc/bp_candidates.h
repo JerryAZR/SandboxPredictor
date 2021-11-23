@@ -19,10 +19,22 @@ typedef struct Prediction
  */
 class Predictor
 {
-public:
-    virtual Prediction predict(uint64_t pc) {return Prediction(true, 0);}
-    virtual void update(uint64_t pc, bool taken) {}
-    virtual void reset() {}
+    private:
+        static uint64_t get_reset_score(uint64_t realHistory,
+            uint64_t bpHistory, uint64_t baseScore, double decayRate)
+        {
+            uint64_t diffHistory = realHistory ^ bpHistory;
+            uint64_t totalScore = 0;
+            for (uint64_t curr = baseScore; curr > 0; curr *= decayRate) {
+                totalScore += (diffHistory & 1) ? curr : 0;
+                diffHistory >>= 1;
+            }
+            return totalScore;
+        }
+    public:
+        virtual Prediction predict(uint64_t pc) {return Prediction(true, 0);}
+        virtual void update(uint64_t pc, bool taken) {}
+        virtual void reset() {}
 };
 
 inline uint32_t clog2(uint32_t x) {
@@ -122,5 +134,26 @@ public:
     void reset();
 };
 
+#define NUM_BUCKET 8
+
+class Tournament : public Predictor
+{
+private:
+    Predictor* bp1;
+    Predictor* bp2;
+    unsigned numBuckets;
+    uint64_t* realHistory;
+    uint64_t* bp1History;
+    uint64_t* bp2Histpry;
+    uint32_t* preference;
+    
+public:
+    Tournament(Predictor* bp1, Predictor* bp2, unsigned nbuckets = NUM_BUCKET);
+    ~Tournament();
+
+    Prediction predict(uint64_t pc);
+    void update(uint64_t pc, bool taken);
+    void reset();
+};
 
 #endif
