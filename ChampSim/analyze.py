@@ -28,10 +28,10 @@ if __name__ == "__main__":
     line = bp_log.readline()
     while (line != ""):
         try:
-            line = bp_log.readline().strip()
             id, pc, pred, fact, _, _ = parse_line(line)
             if (pred != fact):
                 tmp = np.append(tmp, pc)
+            line = bp_log.readline().strip()
         except ValueError:
             break
     bp_log.close()
