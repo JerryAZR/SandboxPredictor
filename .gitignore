@@ -14,3 +14,5 @@ ChampSim/obj/
 
 ChampSim/dpc3_traces/*.xz
 ChampSim/results_*/
+
+ChampSim/branch.csv
