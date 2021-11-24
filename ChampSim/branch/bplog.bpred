@@ -76,12 +76,9 @@ void O3_CPU::last_branch_result(ooo_model_instr instr)
 {
     predictor[cpu]->update(instr.ip, instr.branch_taken);
 
-    // Update history
     unsigned idx = instr.ip % NUM_BINS;
-    globalHistory = (globalHistory << 1) | (instr.branch_taken ? 1 : 0);
-    localHistory[idx] = (localHistory[idx] << 1) | (instr.branch_taken ? 1 : 0);
 
-    // Write to log
+    // Write to log (do this before updating history)
     fout << branchCount++ << ",";
     fout << int2hex(instr.ip) << ",";
     fout << predicted << ",";
@@ -89,6 +86,10 @@ void O3_CPU::last_branch_result(ooo_model_instr instr)
     // Use hex instead of bin for history to save disk space.
     fout << int2hex(globalHistory) << ",";
     fout << int2hex(localHistory[idx]) << std::endl;
+
+    // Update history
+    globalHistory = (globalHistory << 1) | (instr.branch_taken ? 1 : 0);
+    localHistory[idx] = (localHistory[idx] << 1) | (instr.branch_taken ? 1 : 0);
 }
 
 std::string int2hex(uint64_t pc) {

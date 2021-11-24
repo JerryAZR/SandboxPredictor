@@ -156,4 +156,14 @@ public:
     void reset();
 };
 
+class VIP : public Predictor
+{
+    private:
+        Predictor* defaultBP;
+        Predictor* privateBP;
+
+    public:
+        VIP(Predictor* defaultBP, Predictor* privateBP);
+};
+
 #endif
