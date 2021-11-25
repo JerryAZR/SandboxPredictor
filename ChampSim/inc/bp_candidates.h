@@ -164,9 +164,13 @@ class VIP : public Predictor
         MissCache* mCache;
         unsigned mCacheSize;
         Predictor** privateBP;
+        unsigned snapInterval;
+        unsigned currCount;
+
         bool lastPrediction;
     public:
-        VIP(Predictor* defaultBP, MissCache* mCache, unsigned mCacheSize = 8);
+        VIP(Predictor* defaultBP, MissCache* mCache, unsigned mCacheSize = 8, 
+            unsigned snapInterval = 2048);
 
         Prediction predict(uint64_t pc);
         void update(uint64_t pc, bool taken);

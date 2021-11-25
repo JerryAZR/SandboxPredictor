@@ -113,6 +113,11 @@ void LRUMCache::snapshot() {
     for (unsigned i = 0; i < numEntries; i++) {
         savedState[i] = entries[i].pc;
     }
+    // Hardcoded values for testing purpose
+    // savedState[0] = 0x004bedf9;
+    // savedState[1] = 0x004be97a;
+    // savedState[2] = 0x004be9b3;
+    // savedState[3] = 0x004c5c06;
 }
 
 std::string LRUMCache::debug_info() {
