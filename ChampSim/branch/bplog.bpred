@@ -40,7 +40,7 @@ void O3_CPU::initialize_branch_predictor()
 
     // Initialize predictor
     Predictor* complex = new Perceptron(7, 256, 8);
-    MissCache* mCache = new LRUMCache();
+    MissCache* mCache = new NRUMCache();
     predictor[cpu] = new VIP(complex, mCache);
 
     // Initialize history

@@ -65,5 +65,36 @@ public:
     std::string debug_info();
 };
 
+typedef struct nru_entry_t
+{
+    bool used;
+    bool valid;
+    uint64_t pc;
+    unsigned age;
+
+    bool operator<(const nru_entry_t& other) {return age < other.age;}
+} nru_entry_t;
+
+class NRUMCache : public MissCache
+{
+private:
+    /* data */
+    unsigned numEntries;
+    nru_entry_t* entries;
+    uint64_t* savedState;
+    unsigned lru;
+public:
+    NRUMCache() : numEntries(0), entries(NULL), savedState(NULL) {}
+    NRUMCache(unsigned nways);
+    ~NRUMCache();
+
+    int access(uint64_t pc);
+    int get_idx(uint64_t pc);
+    void reset();
+    void resize(unsigned numEntries);
+    unsigned get_all(uint64_t* pcs, unsigned count = -1);
+    void snapshot();
+    std::string debug_info();
+};
 
 #endif
