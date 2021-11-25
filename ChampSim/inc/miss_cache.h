@@ -30,6 +30,7 @@ public:
 
 typedef struct lru_entry_t
 {
+    bool valid;
     uint64_t pc;
     unsigned age;
 

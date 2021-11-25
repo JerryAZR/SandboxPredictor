@@ -18,6 +18,7 @@ void LRUMCache::reset()
     {
         entries[i].age = i;
         entries[i].pc = 0;
+        entries[i].valid = false;
         savedState[i] = 0;
     }
     lru = numEntries - 1;
@@ -42,11 +43,21 @@ void LRUMCache::resize(unsigned nEntries) {
  */
 int LRUMCache::access(uint64_t pc)
 {
-    unsigned pcIdx = lru; // default to lru (or new entry)
-    unsigned pcAge = numEntries - 1; // default to lru (or new entry)
+    unsigned pcIdx = lru; // default to lru
+    unsigned pcAge = numEntries - 1; // default to lru
+    
+    // Find a new entry if possible
+    for (unsigned i = 0; i < numEntries; i++){
+        if(!entries[i].valid){
+            pcIdx = i;
+            break;
+        }
+    }
+
+    // Cache hit has the highest priority
     for (unsigned i = 0; i < numEntries; i++)
     {
-        if (entries[i].pc == pc) // Found the entry
+        if (entries[i].pc == pc && entries[i].valid)
         {
             pcIdx = i;
             pcAge = entries[i].age;
@@ -65,8 +76,10 @@ int LRUMCache::access(uint64_t pc)
             }
         }
     }
+
     // Set current entry to most recently used
     entries[pcIdx].age = 0;
+    entries[pcIdx].valid = true;
     entries[pcIdx].pc = pc; // silent eviction
 
     return get_idx(pc);
@@ -124,7 +137,8 @@ std::string LRUMCache::debug_info() {
     std::stringstream ss;
     for (unsigned i = 0; i < numEntries; i++) {
         ss << "PC: " << std::hex << entries[i].pc;
-        ss << "; AGE: " << std::dec << entries[i].age << std::endl;
+        ss << "; AGE: " << std::dec << entries[i].age;
+        ss << "; VALID: " << std::dec << entries[i].valid << std::endl;
     }
     ss << "Current snapshot: " << std::endl;;
     for (unsigned i = 0; i < numEntries; i++) {
