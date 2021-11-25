@@ -22,12 +22,12 @@ Prediction VIP::predict(uint64_t pc) {
         pred = privateBP[privateIdx]->predict(pc);
     }
     // Always access cache with default prediction
-    lastPrediction = defaultPred.taken;
+    lastPrediction[pc] = defaultPred.taken;
     return pred;
 }
 
 void VIP::update(uint64_t pc, bool taken) {
-    if (taken != lastPrediction) {
+    if (taken != lastPrediction[pc]) {
         mCache->access(pc);
     }
     int privateIdx = mCache->get_idx(pc);
@@ -39,7 +39,7 @@ void VIP::update(uint64_t pc, bool taken) {
         privateBP[privateIdx]->update(pc, taken);
     }
 
-    // Take a snapshot od miss cache on fixed interval
+    // Take a snapshot on miss cache on fixed interval
     currCount++;
     if (currCount == snapInterval) {
         currCount = 0;

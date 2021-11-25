@@ -2,6 +2,7 @@
 #define __PREDICTOR_H_
 
 #include <stdint.h>
+#include <unordered_map>
 #include "miss_cache.h"
 
 typedef struct Prediction
@@ -167,7 +168,7 @@ class VIP : public Predictor
         unsigned snapInterval;
         unsigned currCount;
 
-        bool lastPrediction;
+        std::unordered_map<uint64_t, bool> lastPrediction;
     public:
         VIP(Predictor* defaultBP, MissCache* mCache, unsigned mCacheSize = 8, 
             unsigned snapInterval = 2048);
