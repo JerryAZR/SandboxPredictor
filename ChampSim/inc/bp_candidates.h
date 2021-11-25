@@ -2,6 +2,7 @@
 #define __PREDICTOR_H_
 
 #include <stdint.h>
+#include "miss_cache.h"
 
 typedef struct Prediction
 {
@@ -160,10 +161,17 @@ class VIP : public Predictor
 {
     private:
         Predictor* defaultBP;
-        Predictor* privateBP;
-
+        MissCache* mCache;
+        unsigned mCacheSize;
+        Predictor** privateBP;
+        bool lastPrediction;
     public:
-        VIP(Predictor* defaultBP, Predictor* privateBP);
+        VIP(Predictor* defaultBP, MissCache* mCache, unsigned mCacheSize = 8);
+
+        Prediction predict(uint64_t pc);
+        void update(uint64_t pc, bool taken);
+        void reset();
+        std::string debug_info() {return mCache->debug_info();}
 };
 
 #endif

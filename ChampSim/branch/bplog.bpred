@@ -1,5 +1,6 @@
 #include "ooo_cpu.h"
 #include "bp_candidates.h"
+#include "miss_cache.h"
 
 #include <fstream>
 #include <sstream>
@@ -20,6 +21,8 @@ unsigned branchCount;
 // Prediction log files
 const std::string fname = "branch.csv";
 std::ofstream fout;
+const std::string mcachefname = "mcache.log";
+std::ofstream mcachefout;
 
 // helper functions
 std::string int2hex(uint64_t pc);
@@ -33,12 +36,12 @@ uint64_t reset_score[NUM_CPUS];
 
 void O3_CPU::initialize_branch_predictor()
 {
-    cout << "CPU " << cpu << " Sandbox branch predictor" << endl;
+    cout << "CPU " << cpu << " BPLog branch predictor" << endl;
 
     // Initialize predictor
     Predictor* complex = new Perceptron(7, 256, 8);
-    Predictor* simple = new Gshare(10, 2);
-    predictor[cpu] = new Tournament(simple, complex, 8);
+    MissCache* mCache = new LRUMCache();
+    predictor[cpu] = new VIP(complex, mCache);
 
     // Initialize history
     globalHistory = 0;
@@ -49,6 +52,7 @@ void O3_CPU::initialize_branch_predictor()
     fout << "ID,PC,Predicted,Actual,Global History,Local History";
     fout << std::endl;
     branchCount = 0;
+    mcachefout.open(mcachefname);
 }
 
 /**
@@ -86,6 +90,10 @@ void O3_CPU::last_branch_result(ooo_model_instr instr)
     // Use hex instead of bin for history to save disk space.
     fout << int2hex(globalHistory) << ",";
     fout << int2hex(localHistory[idx]) << std::endl;
+
+    if (branchCount % 1024 == 0) {
+        mcachefout << ((VIP*)predictor[cpu])->debug_info();
+    }
 
     // Update history
     globalHistory = (globalHistory << 1) | (instr.branch_taken ? 1 : 0);
