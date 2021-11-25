@@ -4,6 +4,7 @@
 
 ### 11.25
 
+* Randomized NRU choice
 * Implemented a simple NRU miss cache in [nru.cc](ChampSim/branch/mcache_candidates/nru.cc)
 * Deployed NRU miss cache in [bplog.bpred](ChampSim/branch/bplog.bpred)
 

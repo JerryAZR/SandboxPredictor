@@ -49,7 +49,9 @@ int NRUMCache::access(uint64_t pc)
     unsigned pcAge = numEntries - 1; // default to lru
 
     // Find a unused entry if possible
-    for (unsigned i = 0; i < numEntries; i++){
+    unsigned randBase = rand();
+    for (unsigned j = 0; j < numEntries; j++){
+        unsigned i = (j + randBase) % numEntries;
         if(!entries[i].used && entries[i].valid){
             pcIdx = i;
             break;
