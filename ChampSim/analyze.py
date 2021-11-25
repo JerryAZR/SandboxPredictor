@@ -17,14 +17,15 @@ def parse_line(line):
     return id, pc, pred, fact, ghist, lhist
 
 if __name__ == "__main__":
-
     if (len(sys.argv) < 2):
         print("Missing branch log file")
+
+    # Read in branch prediction log
     bp_log = open(sys.argv[1])
     bp_log.readline() # Skip the header
 
+    # Record all mispredictions for histogram
     tmp = np.empty(shape=0, dtype=int)
-
     line = bp_log.readline()
     while (line != ""):
         try:
@@ -36,11 +37,18 @@ if __name__ == "__main__":
             break
     bp_log.close()
 
+    # Construct and show the histogram
     cnt = Counter(tmp)
     total = len(tmp)
     fig = pl.Figure()
     fig.histogram(tmp)
+    fig.x_label = "PC"
+    fig.y_label = "# miss"
+    print("="*100)
     print(fig.show())
+    print("="*100)
+
+    # List top 10 mispredicted branches
     print(f"Total mispredictions: {total}")
     print("Top 10 mispredicted branches:")
     for entry in cnt.most_common(10):
@@ -51,7 +59,9 @@ if __name__ == "__main__":
     # Analyze the branch with the most mispredicitions
     target_pc = cnt.most_common(1)[0][0]
     num_mispred = cnt.most_common(1)[0][1]
+    print("="*100)
     print("Analyzing branch at {:08x}".format(target_pc))
+    
     # Reset the file pointer
     bp_log = open(sys.argv[1])
     bp_log.readline() # Skip the header
@@ -67,6 +77,7 @@ if __name__ == "__main__":
     local_id = 0 # branch id (local to this branch).
     idx = 0  # index in the misprediction array
 
+    # Record all mispredictions of the most mispredicted branch
     line = bp_log.readline()
     while (line != ""):
         try:
@@ -84,9 +95,16 @@ if __name__ == "__main__":
     bp_log.close()
     out_log.close()
 
+    # Construct and show the histogram
     fig = pl.Figure()
-    fig.histogram(mispredctions, bins=10)
+    fig.histogram(mispredctions, bins=100)
+    fig.set_x_limits(min_=0.0, max_=None)
+    fig.x_label = "Dynamic Instance ID"
+    fig.y_label = "# miss"
     print(fig.show())
+    print("="*100)
+
+    # Show accuracy of the most mispredicted branch
     accuracy = (local_id - idx) / local_id
     print("Accuracy of branch {:08x}: {:.2%}".format(target_pc, accuracy))
     print("Log of branch {:08x} written to {}".format(target_pc, outfname))
