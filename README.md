@@ -2,6 +2,13 @@
 
 ## Updates
 
+### 11.24
+
+* Added miss cache in [miss_cache.h](ChampSim/inc/miss_cache.h)
+* Implemented a simple LRU miss cache in [lru.cc](ChampSim/branch/mcache_candidates/lru.cc)
+* Implemented a simple cache-based predictor in [vip.cc](ChampSim/branch/bp_candidates/vip.cc)
+* **TODO:** Try different cache insertion & eviction policies
+
 ### 11.23
 
 * Moved original sandbox predictor to class `Tournament` in
