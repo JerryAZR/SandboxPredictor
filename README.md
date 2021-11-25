@@ -2,6 +2,11 @@
 
 ## Updates
 
+### 11.25
+
+* Implemented a simple NRU miss cache in [nru.cc](ChampSim/branch/mcache_candidates/nru.cc)
+* Deployed NRU miss cache in [bplog.bpred](ChampSim/branch/bplog.bpred)
+
 ### 11.24
 
 * Added miss cache in [miss_cache.h](ChampSim/inc/miss_cache.h)
