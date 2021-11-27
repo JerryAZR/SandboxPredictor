@@ -37,6 +37,7 @@ class Predictor
         virtual Prediction predict(uint64_t pc) {return Prediction(true, 0);}
         virtual void update(uint64_t pc, bool taken) {}
         virtual void reset() {}
+        virtual std::string debug_info() {return "";}
 };
 
 inline uint32_t clog2(uint32_t x) {
@@ -136,6 +137,25 @@ public:
     void reset();
 };
 
+class NestLoop : public Predictor
+{
+private:
+    int32_t loop_counts;
+    int32_t cur_counts;
+    uint64_t local_pc;
+    uint32_t total_pred;
+    uint32_t correct_pred;
+    bool last_pred;
+public:
+    NestLoop();
+    ~NestLoop();
+
+    Prediction predict(uint64_t pc);
+    void update(uint64_t pc, bool taken);
+    void reset();
+    std::string debug_info();
+};
+
 #define NUM_BUCKET 8
 
 class Tournament : public Predictor
@@ -176,7 +196,7 @@ class VIP : public Predictor
         Prediction predict(uint64_t pc);
         void update(uint64_t pc, bool taken);
         void reset();
-        std::string debug_info() {return mCache->debug_info();}
+        std::string debug_info();
 };
 
 #endif

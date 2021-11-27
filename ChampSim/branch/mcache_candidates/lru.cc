@@ -135,12 +135,13 @@ void LRUMCache::snapshot() {
 
 std::string LRUMCache::debug_info() {
     std::stringstream ss;
+    ss << "-----mcache entries-----" << std::endl;
     for (unsigned i = 0; i < numEntries; i++) {
         ss << "PC: " << std::hex << entries[i].pc;
         ss << "; AGE: " << std::dec << entries[i].age;
         ss << "; VALID: " << std::dec << entries[i].valid << std::endl;
     }
-    ss << "Current snapshot: " << std::endl;;
+    ss << "-----mcache snapshot-----" << std::endl;
     for (unsigned i = 0; i < numEntries; i++) {
         ss << std::dec << i << ": " << std::hex << savedState[i] << std::endl;
     }

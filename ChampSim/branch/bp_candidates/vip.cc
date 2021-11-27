@@ -7,7 +7,7 @@ VIP::VIP(Predictor* defaultBP, MissCache* mCache, unsigned nEntries,
     mCache->resize(nEntries);
     privateBP = (Predictor**) malloc(nEntries * sizeof(Predictor*));
     for (unsigned i = 0; i < nEntries; i++) {
-        privateBP[i] = new Gshare(12, 1);
+        privateBP[i] = new NestLoop();
     }
     reset();
 }
@@ -54,4 +54,12 @@ void VIP::reset() {
         privateBP[i]->reset();
     }
     currCount = 0;
+}
+
+std::string VIP::debug_info(){
+    std::string ret = "-----predictor debug info-----\n";
+    for (unsigned i = 0; i < mCacheSize; i++) {
+        ret += privateBP[i]->debug_info();
+    }
+    return ret += mCache->debug_info();
 }

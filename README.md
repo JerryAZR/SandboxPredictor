@@ -2,6 +2,12 @@
 
 ## Updates
 
+### 11.26
+
+* Add NestLoop predictor in [nestloop.cc](ChampSim/branch/bp_candidates/nestloop.cc)
+* Add debug info for predictors in [bp_candidates.h](ChampSim/inc/bp_candidates.h)
+* Change mcache.log to debug_info.log and change debug info format
+
 ### 11.25
 
 * Randomized NRU choice

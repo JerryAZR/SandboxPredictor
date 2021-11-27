@@ -21,8 +21,8 @@ unsigned branchCount;
 // Prediction log files
 const std::string fname = "branch.csv";
 std::ofstream fout;
-const std::string mcachefname = "mcache.log";
-std::ofstream mcachefout;
+const std::string debugfname = "debug_info.log";
+std::ofstream debugfout;
 
 // helper functions
 std::string int2hex(uint64_t pc);
@@ -52,7 +52,7 @@ void O3_CPU::initialize_branch_predictor()
     fout << "ID,PC,Predicted,Actual,Global History,Local History";
     fout << std::endl;
     branchCount = 0;
-    mcachefout.open(mcachefname);
+    debugfout.open(debugfname);
 }
 
 /**
@@ -92,7 +92,7 @@ void O3_CPU::last_branch_result(ooo_model_instr instr)
     fout << int2hex(localHistory[idx]) << std::endl;
 
     if (branchCount % 1024 == 0) {
-        mcachefout << ((VIP*)predictor[cpu])->debug_info();
+        debugfout << ((VIP*)predictor[cpu])->debug_info();
     }
 
     // Update history
