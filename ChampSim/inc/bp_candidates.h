@@ -154,8 +154,10 @@ private:
     uint32_t total_pred;
     uint32_t correct_pred;
     bool last_pred;
+    bool count_ready;
 public:
     NestLoop();
+    NestLoop(const NestLoop& other);
     ~NestLoop();
 
     Prediction predict(uint64_t pc);

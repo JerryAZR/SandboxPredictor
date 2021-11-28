@@ -1,6 +1,7 @@
 #include "bp_candidates.h"
 
 template class VIP<Perceptron>;
+template class VIP<NestLoop>;
 
 /**
  * @brief Construct a new VIP<T>::VIP object

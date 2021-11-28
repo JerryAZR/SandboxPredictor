@@ -41,8 +41,11 @@ void O3_CPU::initialize_branch_predictor()
     // Initialize predictor
     Predictor* complex = new Perceptron(7, 256, 8);
     MissCache* mCache = new SLRUMCache();
-    Perceptron prototype(8,1,8);
-    predictor[cpu] = new VIP<Perceptron>(complex, prototype, mCache, 8, 256);
+    // Perceptron prototype(8,1,8);
+    // predictor[cpu] = new VIP<Perceptron>(complex, prototype, mCache, 8, 256);
+    NestLoop prototype = NestLoop();
+    predictor[cpu] = new VIP<NestLoop>(complex, prototype, mCache, 8, 256);
+
 
     // Initialize history
     globalHistory = 0;
