@@ -12,6 +12,9 @@ typedef struct Prediction
 
     Prediction(bool taken = false, int confidence = 0)
     : taken(taken), confidence(confidence) {}
+
+    Prediction operator!() {return Prediction(!taken, confidence);}
+    Prediction operator~() {return Prediction(!taken, confidence);}
 } Prediction;
 
 /**
@@ -35,6 +38,8 @@ class Predictor
         }
     public:
         virtual Prediction predict(uint64_t pc) {return Prediction(true, 0);}
+        virtual Prediction predict(uint64_t pc, uint64_t addon,
+            uint32_t addon_len = 0) {return predict(pc);}
         virtual void update(uint64_t pc, bool taken) {}
         virtual void reset() {}
         virtual std::string debug_info() {return "";}
@@ -107,6 +112,7 @@ public:
     ~Perceptron();
 
     Prediction predict(uint64_t pc);
+    Prediction predict(uint64_t pc, uint64_t addon, uint32_t addon_len = 0);
     void update(uint64_t pc, bool taken);
     void reset();
 };
@@ -133,6 +139,7 @@ public:
     ~Gshare();
 
     Prediction predict(uint64_t pc);
+    Prediction predict(uint64_t pc, uint64_t addon, uint32_t addon_len = 0);
     void update(uint64_t pc, bool taken);
     void reset();
 };
@@ -187,6 +194,7 @@ class VIP : public Predictor
         Predictor** privateBP;
         unsigned snapInterval;
         unsigned currCount;
+        uint64_t history;
 
         std::unordered_map<uint64_t, bool> lastPrediction;
     public:

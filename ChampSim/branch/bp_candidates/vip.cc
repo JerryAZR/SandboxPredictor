@@ -7,7 +7,7 @@ VIP::VIP(Predictor* defaultBP, MissCache* mCache, unsigned nEntries,
     mCache->resize(nEntries);
     privateBP = (Predictor**) malloc(nEntries * sizeof(Predictor*));
     for (unsigned i = 0; i < nEntries; i++) {
-        privateBP[i] = new Gshare(12,1);
+        privateBP[i] = new Perceptron(8, 1, 8);
     }
     reset();
 }
@@ -19,7 +19,7 @@ Prediction VIP::predict(uint64_t pc) {
     if (privateIdx == -1) {
         pred = defaultPred;
     } else {
-        pred = privateBP[privateIdx]->predict(pc);
+        pred = privateBP[privateIdx]->predict(pc, history, 4);
     }
     // Always access cache with default prediction
     lastPrediction[pc] = defaultPred.taken;
@@ -45,6 +45,9 @@ void VIP::update(uint64_t pc, bool taken) {
         currCount = 0;
         mCache->snapshot();
     }
+
+    // Update history
+    history = (history << 1) | (taken ? 1 : 0);
 }
 
 void VIP::reset() {
@@ -54,6 +57,7 @@ void VIP::reset() {
         privateBP[i]->reset();
     }
     currCount = 0;
+    history = 0;
 }
 
 std::string VIP::debug_info(){

@@ -2,6 +2,12 @@
 
 ## Updates
 
+### 11.27
+
+* Implemented Segment LRU miss cache in [nru.cc](ChampSim/branch/mcache_candidates/slru.cc)
+* Changed private predictor type of VIP predictor to perceptron
+* **TODO:** Try VIP predictor with LTAGE as default predictor
+
 ### 11.26
 
 * Add NestLoop predictor in [nestloop.cc](ChampSim/branch/bp_candidates/nestloop.cc)

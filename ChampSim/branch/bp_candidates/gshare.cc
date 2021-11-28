@@ -27,6 +27,17 @@ Prediction Gshare::predict(uint64_t pc)
     return Prediction(taken, confidence);
 }
 
+Prediction Gshare::predict(uint64_t pc, uint64_t addon, uint32_t addon_len)
+{
+    uint64_t addonMask = (1 << addon_len) - 1;
+    uint64_t tmpHistory = (history << addon_len) | (addon & addonMask);
+    unsigned idx = (tmpHistory ^ pc) & ((1 << GHRLen) - 1);
+    int counter = table[idx];
+    bool taken = counter >= 0;
+    unsigned confidence = taken ? (counter + 1) : (0 - counter);
+    return Prediction(taken, confidence);
+}
+
 void Gshare::update(uint64_t pc, bool taken)
 {
     unsigned idx = get_idx(pc);
@@ -40,6 +51,7 @@ void Gshare::reset()
 {
     unsigned tableSize = 1 << GHRLen;
     memset(table, 0, tableSize * sizeof(int));
+    history = 0;
 }
 
 unsigned Gshare::get_idx(uint64_t pc)

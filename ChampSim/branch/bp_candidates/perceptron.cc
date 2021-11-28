@@ -59,6 +59,24 @@ Prediction Perceptron::predict(uint64_t pc)
     return Prediction(sum >= 0, abs(sum));
 }
 
+Prediction Perceptron::predict(uint64_t pc, uint64_t addon, uint32_t addon_len)
+{
+    unsigned idx = get_idx(pc);
+    int sum = bias[idx];
+    uint64_t addonMask = (1 << addon_len) - 1;
+    uint64_t tmpHistory = (spec_history << addon_len) | (addon & addonMask);
+
+    for (unsigned i = 0; i < GHRLen; i++)
+    {
+        if ((tmpHistory >> i) & 1) sum += weights[idx * GHRLen + i];
+        else sum -= weights[idx * GHRLen + i];
+    }
+    pending_bp.enqueue(pstate(tmpHistory, sum));
+
+    spec_history = (spec_history << 1) | ((sum >= 0) ? 1 : 0);
+    return Prediction(sum >= 0, abs(sum));
+}
+
 /**
  * @brief Update weights and bias based on history and previous branch outcome
  * 
