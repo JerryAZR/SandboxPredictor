@@ -40,8 +40,9 @@ void O3_CPU::initialize_branch_predictor()
 
     // Initialize predictor
     Predictor* complex = new Perceptron(7, 256, 8);
-    MissCache* mCache = new LRUMCache();
-    predictor[cpu] = new VIP(complex, mCache, 8, 1);
+    MissCache* mCache = new SLRUMCache();
+    Perceptron prototype(8,1,8);
+    predictor[cpu] = new VIP<Perceptron>(complex, prototype, mCache, 8, 256);
 
     // Initialize history
     globalHistory = 0;
@@ -92,7 +93,7 @@ void O3_CPU::last_branch_result(ooo_model_instr instr)
     fout << int2hex(localHistory[idx]) << std::endl;
 
     if (branchCount % 1024 == 0) {
-        debugfout << ((VIP*)predictor[cpu])->debug_info();
+        debugfout << predictor[cpu]->debug_info();
     }
 
     // Update history

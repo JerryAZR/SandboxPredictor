@@ -109,6 +109,7 @@ public:
     Perceptron(unsigned GHRLen = PERCEPTRON_GHR_LEN,
                unsigned tableSize = PERCEPTRON_TABLE_SIZE,
                unsigned weightLen = PERCEPTRON_WEIGHT_LEN);
+    Perceptron(const Perceptron& other);
     ~Perceptron();
 
     Prediction predict(uint64_t pc);
@@ -185,6 +186,7 @@ public:
     void reset();
 };
 
+template <class T>
 class VIP : public Predictor
 {
     private:
@@ -198,8 +200,8 @@ class VIP : public Predictor
 
         std::unordered_map<uint64_t, bool> lastPrediction;
     public:
-        VIP(Predictor* defaultBP, MissCache* mCache, unsigned mCacheSize = 8, 
-            unsigned snapInterval = 2048);
+        VIP(Predictor* defaultBP, T& prototypeBP, MissCache* mCache,
+            unsigned mCacheSize = 8, unsigned snapInterval = 2048);
 
         Prediction predict(uint64_t pc);
         void update(uint64_t pc, bool taken);

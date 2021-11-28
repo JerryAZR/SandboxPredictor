@@ -5,7 +5,7 @@
 ### 11.27
 
 * Implemented Segment LRU miss cache in [nru.cc](ChampSim/branch/mcache_candidates/slru.cc)
-* Changed private predictor type of VIP predictor to perceptron
+* Changed VIP predictor to template class to allow flexible private predictor choice
 * **TODO:** Try VIP predictor with LTAGE as default predictor
 
 ### 11.26

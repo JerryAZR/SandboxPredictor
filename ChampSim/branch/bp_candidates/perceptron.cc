@@ -25,6 +25,21 @@ Perceptron::Perceptron(unsigned GHRLen, unsigned tableSize, unsigned weightLen)
     reset();
 }
 
+Perceptron::Perceptron(const Perceptron& other)
+{
+    GHRLen = other.GHRLen;
+    tableSize = other.tableSize;
+    weightLen = other.weightLen;
+    threshold = other.threshold;
+    weightMax = other.weightMax;
+    weightMin = other.weightMin;
+
+    weights = (int*) malloc(tableSize * GHRLen * sizeof(int));
+    bias = (int*) malloc(tableSize * sizeof(int));
+
+    reset();
+}
+
 Perceptron::~Perceptron()
 {
     free(weights);

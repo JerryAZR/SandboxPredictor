@@ -1,18 +1,35 @@
 #include "bp_candidates.h"
 
-VIP::VIP(Predictor* defaultBP, MissCache* mCache, unsigned nEntries,
-        unsigned snapInterval) : defaultBP(defaultBP), mCache(mCache),
-        mCacheSize(nEntries), snapInterval(snapInterval)
+template class VIP<Perceptron>;
+
+/**
+ * @brief Construct a new VIP<T>::VIP object
+ * 
+ * @tparam T Class for private branch predictor. Mush be derived from class
+ * Predictor, or implement equivalent public member functions
+ * 
+ * @param defaultBP The default branch predictor
+ * @param prototypeBP Prototype for private predictor
+ * @param mCache Miss cache
+ * @param nEntries Number of entries in miss cache. Also the number of private BPs
+ * @param snapInterval The number of predictions between each mCache snapshot
+ */
+template <class T>
+VIP<T>::VIP(Predictor* defaultBP, T& prototypeBP, MissCache* mCache,
+               unsigned nEntries, unsigned snapInterval) : 
+               defaultBP(defaultBP), mCache(mCache), mCacheSize(nEntries),
+               snapInterval(snapInterval)
 {
     mCache->resize(nEntries);
     privateBP = (Predictor**) malloc(nEntries * sizeof(Predictor*));
     for (unsigned i = 0; i < nEntries; i++) {
-        privateBP[i] = new Perceptron(8, 1, 8);
+        privateBP[i] = new T(prototypeBP);
     }
     reset();
 }
 
-Prediction VIP::predict(uint64_t pc) {
+template <class T>
+Prediction VIP<T>::predict(uint64_t pc) {
     Prediction pred, defaultPred;
     int privateIdx = mCache->get_idx(pc);
     defaultPred = defaultBP->predict(pc);
@@ -26,7 +43,8 @@ Prediction VIP::predict(uint64_t pc) {
     return pred;
 }
 
-void VIP::update(uint64_t pc, bool taken) {
+template <class T>
+void VIP<T>::update(uint64_t pc, bool taken) {
     if (taken != lastPrediction[pc]) {
         mCache->access(pc);
     }
@@ -50,7 +68,8 @@ void VIP::update(uint64_t pc, bool taken) {
     history = (history << 1) | (taken ? 1 : 0);
 }
 
-void VIP::reset() {
+template <class T>
+void VIP<T>::reset() {
     defaultBP->reset();
     mCache->reset();
     for (unsigned i = 0; i < mCacheSize; i++) {
@@ -60,7 +79,8 @@ void VIP::reset() {
     history = 0;
 }
 
-std::string VIP::debug_info(){
+template <class T>
+std::string VIP<T>::debug_info(){
     std::string ret = "-----predictor debug info-----\n";
     for (unsigned i = 0; i < mCacheSize; i++) {
         ret += privateBP[i]->debug_info();
