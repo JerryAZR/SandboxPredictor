@@ -7,7 +7,7 @@ VIP::VIP(Predictor* defaultBP, MissCache* mCache, unsigned nEntries,
     mCache->resize(nEntries);
     privateBP = (Predictor**) malloc(nEntries * sizeof(Predictor*));
     for (unsigned i = 0; i < nEntries; i++) {
-        privateBP[i] = new NestLoop();
+        privateBP[i] = new Gshare(12,1);
     }
     reset();
 }

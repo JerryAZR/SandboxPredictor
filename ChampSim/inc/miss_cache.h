@@ -97,4 +97,46 @@ public:
     std::string debug_info();
 };
 
+class Segment
+{
+public:
+    unsigned numEntries;
+    lru_entry_t* entries;
+    unsigned lru;
+
+    Segment() : numEntries(0), entries(NULL) {}
+    Segment(unsigned nEntries);
+    ~Segment();
+
+    bool contains(uint64_t pc);
+    void reset();
+    void resize(unsigned numEntries);
+    void bump(uint64_t pc);
+    uint64_t add(uint64_t pc);
+    void remove(uint64_t pc);
+    unsigned get_all(uint64_t* pcs, unsigned count = -1);
+    std::string debug_info();
+};
+
+class SLRUMCache : public MissCache
+{
+private:
+    unsigned numEntries;
+    Segment* protectedSeg;
+    Segment* probationarySeg;
+    uint64_t* savedState;
+public:
+    SLRUMCache() : numEntries(0), protectedSeg(NULL), probationarySeg(NULL), savedState(NULL) {}
+    SLRUMCache(unsigned nEntries);
+    ~SLRUMCache();
+
+    int access(uint64_t pc);
+    int get_idx(uint64_t pc);
+    void reset();
+    void resize(unsigned numEntries);
+    unsigned get_all(uint64_t* pcs, unsigned count = -1);
+    void snapshot();
+    std::string debug_info();
+};
+
 #endif
