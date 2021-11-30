@@ -2,14 +2,14 @@
 
 ## Updates
 
-### 11.27
+### 11.28
 
 * Improved reset and update logic of NestLoop predictor and added comment to [nestloop.cc](ChampSim/branch/bp_candidates/nestloop.cc)
 * Add NestLoop predictor to VIP predictor's template in [vip.cc](ChampSim/branch/bp_candidates/vip.cc)
 
 ### 11.27
 
-* Implemented Segment LRU miss cache in [nru.cc](ChampSim/branch/mcache_candidates/slru.cc)
+* Implemented Segment LRU miss cache in [slru.cc](ChampSim/branch/mcache_candidates/slru.cc)
 * Changed VIP predictor to template class to allow flexible private predictor choice
 * **TODO:** Try VIP predictor with LTAGE as default predictor
 
