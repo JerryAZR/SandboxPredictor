@@ -17,9 +17,9 @@ template class VIP<NestLoop>;
  */
 template <class T>
 VIP<T>::VIP(Predictor* defaultBP, T& prototypeBP, MissCache* mCache,
-               unsigned nEntries, unsigned snapInterval) : 
+               unsigned nEntries, unsigned snapInterval, unsigned GHRLen) : 
                defaultBP(defaultBP), mCache(mCache), mCacheSize(nEntries),
-               snapInterval(snapInterval)
+               snapInterval(snapInterval), GHRLen(GHRLen)
 {
     mCache->resize(nEntries);
     privateBP = (Predictor**) malloc(nEntries * sizeof(Predictor*));
@@ -37,7 +37,7 @@ Prediction VIP<T>::predict(uint64_t pc) {
     if (privateIdx == -1) {
         pred = defaultPred;
     } else {
-        pred = privateBP[privateIdx]->predict(pc, history, 8);
+        pred = privateBP[privateIdx]->predict(pc, history, GHRLen);
     }
     // Always access cache with default prediction
     lastPrediction[pc] = defaultPred.taken;

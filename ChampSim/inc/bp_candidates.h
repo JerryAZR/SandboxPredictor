@@ -204,13 +204,15 @@ class VIP : public Predictor
         unsigned mCacheSize;
         Predictor** privateBP;
         unsigned snapInterval;
+        unsigned GHRLen;
         unsigned currCount;
         uint64_t history;
 
         std::unordered_map<uint64_t, bool> lastPrediction;
     public:
         VIP(Predictor* defaultBP, T& prototypeBP, MissCache* mCache,
-            unsigned mCacheSize = 8, unsigned snapInterval = 2048);
+            unsigned mCacheSize = 8, unsigned snapInterval = 2048,
+            unsigned GHRLen = 8);
 
         Prediction predict(uint64_t pc);
         void update(uint64_t pc, bool taken);
