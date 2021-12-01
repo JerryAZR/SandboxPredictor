@@ -36,23 +36,11 @@ uint64_t reset_score[NUM_CPUS];
 
 void O3_CPU::initialize_branch_predictor()
 {
-    cout << "CPU " << cpu << " BPLog branch predictor ";
-
-    // Initialize predictor
-
-    /* Perceptron predictor */
-    // predictor[cpu] = new Perceptron(8, 512, 8);
+    cout << "CPU " << cpu << " TAGE branch predictor ";
 
     /* TAGE predictor */
     Predictor* base = new Gshare(12, 2);
-    Predictor* tage = new TAGE(base, 4, 9);
-    Perceptron prototype(16,1,8);
-    MissCache* mCache = new SLRUMCache();
-    predictor[cpu] = new VIP<Perceptron>(tage, prototype, mCache, 4, 256);
-
-    // NestLoop prototype = NestLoop();
-    // predictor[cpu] = new VIP<NestLoop>(tage, prototype, mCache, 8, 256);
-
+    predictor[cpu] = new TAGE(base, 4, 9);
 
     cout << predictor[cpu]->sizeB() << " Bytes" << endl;
 

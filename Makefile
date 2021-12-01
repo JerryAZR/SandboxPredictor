@@ -14,17 +14,18 @@ TRACE=$(shell ls ChampSim/dpc3_traces/ | grep $(TRACE_ID))
 all:
 	echo "Please refer to the README.md in ChampSim/ for detailed instructions"
 
-sandbox perceptron static bimodal gshare bplog:
+sandbox perceptron static bimodal gshare bplog tage:
 	cd ChampSim && \
 	bash build_champsim.sh \
 	$@ $(L1I_PRE) $(L1D_PRE) $(L2_PRE) $(LLC_PRE) $(LLC_REP) 1
 
-run_sandbox run_perceptron run_static run_bimodal run_gshare run_bplog:
+run_sandbox run_perceptron run_static run_bimodal run_gshare run_bplog run_tage:
 	cd ChampSim && \
 	bash run_champsim.sh $(subst run_,,$@)-$(L1I_PRE)-$(L1D_PRE)-$(L2_PRE)-\
 	$(LLC_PRE)-$(LLC_REP)-1core $(N_WARM) $(N_SIM) $(TRACE)
-	grep "Accuracy\|IPC" ChampSim/results_$(N_SIM)M/$(TRACE)-$(subst run_,,$@)-\
-	$(L1I_PRE)-$(L1D_PRE)-$(L2_PRE)-$(LLC_PRE)-$(LLC_REP)-1core.txt
+	grep "Accuracy\|IPC\|branch predictor" ChampSim/results_$(N_SIM)M/$(TRACE)-\
+	$(subst run_,,$@)-$(L1I_PRE)-$(L1D_PRE)-$(L2_PRE)-$(LLC_PRE)-$(LLC_REP)-\
+	1core.txt
 
 analyze:
 	cd ChampSim && python3 analyze.py branch.csv

@@ -37,7 +37,7 @@ Prediction VIP<T>::predict(uint64_t pc) {
     if (privateIdx == -1) {
         pred = defaultPred;
     } else {
-        pred = privateBP[privateIdx]->predict(pc, history, 4);
+        pred = privateBP[privateIdx]->predict(pc, history, 8);
     }
     // Always access cache with default prediction
     lastPrediction[pc] = defaultPred.taken;
@@ -87,4 +87,12 @@ std::string VIP<T>::debug_info(){
         ret += privateBP[i]->debug_info();
     }
     return ret += mCache->debug_info();
+}
+
+template <class T>
+uint64_t VIP<T>::sizeB() {
+    uint64_t privateSize = mCacheSize * privateBP[0]->sizeB();
+    uint64_t cacheSize = mCache->sizeB();
+    uint64_t defaultSize = defaultBP->sizeB();
+    return privateSize + cacheSize + defaultSize;
 }

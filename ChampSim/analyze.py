@@ -27,9 +27,11 @@ if __name__ == "__main__":
     # Record all mispredictions for histogram
     tmp = np.empty(shape=0, dtype=int)
     line = bp_log.readline()
+    bcount = 0
     while (line != ""):
         try:
             id, pc, pred, fact, _, _ = parse_line(line)
+            bcount += 1
             if (pred != fact):
                 tmp = np.append(tmp, pc)
             line = bp_log.readline().strip()
@@ -49,7 +51,8 @@ if __name__ == "__main__":
     print("="*100)
 
     # List top 10 mispredicted branches
-    print(f"Total mispredictions: {total}")
+    accuracy = (bcount - total) / bcount
+    print(f"Total mispredictions: {total}. Accuracy: {accuracy*100}%")
     print("Top 10 mispredicted branches:")
     for entry in cnt.most_common(10):
         pc = entry[0]
@@ -108,3 +111,4 @@ if __name__ == "__main__":
     accuracy = (local_id - idx) / local_id
     print("Accuracy of branch {:08x}: {:.2%}".format(target_pc, accuracy))
     print("Log of branch {:08x} written to {}".format(target_pc, outfname))
+    assert(idx == num_mispred)

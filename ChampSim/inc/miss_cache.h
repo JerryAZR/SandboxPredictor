@@ -26,6 +26,7 @@ public:
         return ss.str();
     }
     virtual void debug_print() {std::cout << debug_info();}
+    virtual uint64_t sizeB() {return 0;}
 };
 
 typedef struct lru_entry_t
@@ -63,6 +64,7 @@ public:
     unsigned get_all(uint64_t* pcs, unsigned count = -1);
     void snapshot();
     std::string debug_info();
+    uint64_t sizeB() {return numEntries * 134 / 8;}
 };
 
 typedef struct nru_entry_t
@@ -95,6 +97,7 @@ public:
     unsigned get_all(uint64_t* pcs, unsigned count = -1);
     void snapshot();
     std::string debug_info();
+    uint64_t sizeB() {return numEntries * 130 / 8;}
 };
 
 class Segment
@@ -116,6 +119,7 @@ public:
     void remove(uint64_t pc);
     unsigned get_all(uint64_t* pcs, unsigned count = -1);
     std::string debug_info();
+    uint64_t sizeB() {return numEntries * 70 / 8;}
 };
 
 class SLRUMCache : public MissCache
@@ -137,6 +141,9 @@ public:
     unsigned get_all(uint64_t* pcs, unsigned count = -1);
     void snapshot();
     std::string debug_info();
+    uint64_t sizeB() {
+        return protectedSeg->sizeB() + probationarySeg->sizeB() + (numEntries * 8);
+    }
 };
 
 #endif
