@@ -2,6 +2,11 @@
 
 ## Updates
 
+### 11.30
+
+* Add confidence level to NestLoop predictor in [nestloop.cc](ChampSim/branch/bp_candidates/nestloop.cc)
+* Update VIP predictor to use confidence level only for NestLoop predictor in [vip.cc](ChampSim/branch/bp_candidates/vip.cc)
+
 ### 11.28
 
 * Improved reset and update logic of NestLoop predictor and added comment to [nestloop.cc](ChampSim/branch/bp_candidates/nestloop.cc)

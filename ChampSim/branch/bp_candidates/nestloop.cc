@@ -24,6 +24,8 @@ NestLoop::~NestLoop()
 
 Prediction NestLoop::predict(uint64_t pc)
 {
+    // Calculate current accuracy
+    int acc = correct_pred * 100 / total_pred;
     // Increment total prediction count
     total_pred++;
 
@@ -35,7 +37,7 @@ Prediction NestLoop::predict(uint64_t pc)
         loop_counts = 0;
         last_pred = true;
         count_ready = false;
-        return Prediction(1, 1);
+        return Prediction(1, 50);
     }
 
     // If loop count is ready, we use it to predict when
@@ -44,16 +46,16 @@ Prediction NestLoop::predict(uint64_t pc)
         if(cur_counts < loop_counts){
             cur_counts++;
             last_pred = true;
-            return Prediction(1, 1);
+            return Prediction(1, acc);
         } else {
             cur_counts = 0;
             last_pred = false;
-            return Prediction(0, 1);
+            return Prediction(0, acc);
         }
     // If loop count is not ready, we take the loop
     } else {
         last_pred = true;
-        return Prediction(1, 1);
+        return Prediction(1, 50);
     }
 }
 

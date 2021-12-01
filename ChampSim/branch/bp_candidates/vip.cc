@@ -31,13 +31,16 @@ VIP<T>::VIP(Predictor* defaultBP, T& prototypeBP, MissCache* mCache,
 
 template <class T>
 Prediction VIP<T>::predict(uint64_t pc) {
-    Prediction pred, defaultPred;
+    Prediction pred, defaultPred, privatePred;
     int privateIdx = mCache->get_idx(pc);
     defaultPred = defaultBP->predict(pc);
     if (privateIdx == -1) {
         pred = defaultPred;
     } else {
-        pred = privateBP[privateIdx]->predict(pc, history, 4);
+        privatePred = privateBP[privateIdx]->predict(pc, history, 4);
+        pred = privatePred;
+        // Only use for Nestloop predictor
+        // pred = (privatePred.confidence > 90) ? privatePred : defaultPred;
     }
     // Always access cache with default prediction
     lastPrediction[pc] = defaultPred.taken;
