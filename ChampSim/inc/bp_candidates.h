@@ -41,7 +41,9 @@ class Predictor
         virtual Prediction predict(uint64_t pc, uint64_t addon,
             uint32_t addon_len = 0) {return predict(pc);}
         virtual void update(uint64_t pc, bool taken) {}
+        virtual void updateHistory(bool taken) {}
         virtual void reset() {}
+        virtual uint64_t sizeB() {return 0;}
         virtual std::string debug_info() {return "";}
 };
 
@@ -116,6 +118,7 @@ public:
     Prediction predict(uint64_t pc, uint64_t addon, uint32_t addon_len = 0);
     void update(uint64_t pc, bool taken);
     void reset();
+    uint64_t sizeB() {return (GHRLen + 1) * weightLen * tableSize / 8;}
 };
 
 #define GSHARE_GHR_LEN 8
@@ -130,6 +133,7 @@ class Gshare : public Predictor
 private:
     unsigned GHRLen;
     uint64_t history;
+    unsigned counterLen;
     int counterMax, counterMin;
     int* table;
 
@@ -142,7 +146,9 @@ public:
     Prediction predict(uint64_t pc);
     Prediction predict(uint64_t pc, uint64_t addon, uint32_t addon_len = 0);
     void update(uint64_t pc, bool taken);
+    void updateHistory(bool taken) {history = (history << 1) | (taken ? 1 : 0);}
     void reset();
+    uint64_t sizeB() {return (1 << GHRLen) * counterLen / 8;}
 };
 
 class NestLoop : public Predictor
@@ -186,6 +192,7 @@ public:
     Prediction predict(uint64_t pc);
     void update(uint64_t pc, bool taken);
     void reset();
+    uint64_t sizeB() {return bp1->sizeB() + bp2->sizeB();}
 };
 
 template <class T>
@@ -197,18 +204,93 @@ class VIP : public Predictor
         unsigned mCacheSize;
         Predictor** privateBP;
         unsigned snapInterval;
+        unsigned GHRLen;
         unsigned currCount;
         uint64_t history;
 
         std::unordered_map<uint64_t, bool> lastPrediction;
     public:
         VIP(Predictor* defaultBP, T& prototypeBP, MissCache* mCache,
-            unsigned mCacheSize = 8, unsigned snapInterval = 2048);
+            unsigned mCacheSize = 8, unsigned snapInterval = 2048,
+            unsigned GHRLen = 8);
 
         Prediction predict(uint64_t pc);
         void update(uint64_t pc, bool taken);
         void reset();
+        uint64_t sizeB();
         std::string debug_info();
+};
+
+typedef struct tage_entry_t
+{
+    uint64_t tag;
+    int counter;
+    int useful;
+
+    tage_entry_t(uint64_t t = 0, int c = 0, int u = 0) :
+    tag(t), counter(c), useful(u) {}
+    bool valid() {return useful >= 0;}
+    bool weak() {return useful == 0 && (counter == 0 || counter == -1);}
+    bool taken() {return counter >= 0;}
+    Prediction toPrediction() {
+        unsigned raw_conf = (counter < 0) ? (-1 * counter) : (counter + 1);
+        bool taken = (counter >= 0);
+        return Prediction(taken, raw_conf + useful);
+    }
+} tage_entry_t;
+
+class TagTable
+{
+private:
+    unsigned idxLen;
+    unsigned tagLen;
+    unsigned nEntries;
+    tage_entry_t* content;
+    int counterMax;
+    int counterMin;
+    int usefulMax;
+public:
+    TagTable(unsigned idxLen, unsigned tagLen);
+    ~TagTable();
+
+    uint64_t get_idx(uint64_t pc, uint64_t history);
+    uint64_t get_tag(uint64_t pc, uint64_t history);
+    tage_entry_t lookup(uint64_t pc, uint64_t history);
+    bool add(uint64_t pc, uint64_t history);
+    void update(uint64_t pc, uint64_t history, bool taken, int useful);
+    void decay();
+    void decay(uint64_t pc, uint64_t history);
+    void soft_reset(unsigned mask = 0);
+    void hard_reset();
+    std::string debug_info();
+    uint64_t sizeB() {return nEntries * (tagLen+4) / 8;}
+};
+
+class TAGE : public Predictor
+{
+private:
+    Predictor* baseBP;
+    unsigned nTables;
+    TagTable** tables;
+    uint64_t history;
+    unsigned GHRLen;
+    tage_entry_t mainPred;
+    int mainProvider;
+    tage_entry_t altPred;
+    int altProvider;
+    bool basePred;
+    bool overallPred;
+    uint64_t resetPeriod;
+    uint64_t branchCount;
+    unsigned resetMask;
+public:
+    TAGE(Predictor* base, unsigned nTables, unsigned idxLen);
+    ~TAGE();
+
+    Prediction predict(uint64_t pc);
+    void update(uint64_t pc, bool taken);
+    void reset();
+    uint64_t sizeB();
 };
 
 #endif

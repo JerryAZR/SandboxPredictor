@@ -2,7 +2,8 @@
 #include <cstring>
 #include <stdlib.h>
 
-Gshare::Gshare(unsigned GHRLen, unsigned counterLen) : GHRLen(GHRLen)
+Gshare::Gshare(unsigned GHRLen, unsigned counterLen) :
+GHRLen(GHRLen), counterLen(counterLen)
 {
     counterMax = (1 << (counterLen - 1)) - 1;
     counterMin = -1 - counterMax;

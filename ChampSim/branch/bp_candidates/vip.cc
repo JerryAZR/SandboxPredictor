@@ -17,9 +17,9 @@ template class VIP<NestLoop>;
  */
 template <class T>
 VIP<T>::VIP(Predictor* defaultBP, T& prototypeBP, MissCache* mCache,
-               unsigned nEntries, unsigned snapInterval) : 
+               unsigned nEntries, unsigned snapInterval, unsigned GHRLen) : 
                defaultBP(defaultBP), mCache(mCache), mCacheSize(nEntries),
-               snapInterval(snapInterval)
+               snapInterval(snapInterval), GHRLen(GHRLen)
 {
     mCache->resize(nEntries);
     privateBP = (Predictor**) malloc(nEntries * sizeof(Predictor*));
@@ -37,7 +37,7 @@ Prediction VIP<T>::predict(uint64_t pc) {
     if (privateIdx == -1) {
         pred = defaultPred;
     } else {
-        privatePred = privateBP[privateIdx]->predict(pc, history, 4);
+        privatePred = privateBP[privateIdx]->predict(pc, history, GHRLen);
         pred = privatePred;
         // Only use for Nestloop predictor
         // pred = (privatePred.confidence > 90) ? privatePred : defaultPred;
@@ -90,4 +90,12 @@ std::string VIP<T>::debug_info(){
         ret += privateBP[i]->debug_info();
     }
     return ret += mCache->debug_info();
+}
+
+template <class T>
+uint64_t VIP<T>::sizeB() {
+    uint64_t privateSize = mCacheSize * privateBP[0]->sizeB();
+    uint64_t cacheSize = mCache->sizeB();
+    uint64_t defaultSize = defaultBP->sizeB();
+    return privateSize + cacheSize + defaultSize;
 }
