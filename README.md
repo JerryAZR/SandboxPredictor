@@ -2,6 +2,10 @@
 
 ## Updates
 
+### 11.30
+
+* Added TAGE branch predictor in [tage.cc](ChampSim/branch/bp_candidates/tage.cc)
+
 ### 11.27
 
 * Improved reset and update logic of NestLoop predictor and added comment to [nestloop.cc](ChampSim/branch/bp_candidates/nestloop.cc)
