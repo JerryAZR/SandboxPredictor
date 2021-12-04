@@ -55,7 +55,7 @@ private:
 public:
     LRUMCache() : numEntries(0), entries(NULL), savedState(NULL) {}
     LRUMCache(unsigned nways);
-    ~LRUMCache();
+    virtual ~LRUMCache();
 
     int access(uint64_t pc);
     int get_idx(uint64_t pc);
@@ -88,7 +88,7 @@ private:
 public:
     NRUMCache() : numEntries(0), entries(NULL), savedState(NULL) {}
     NRUMCache(unsigned nways);
-    ~NRUMCache();
+    virtual ~NRUMCache();
 
     int access(uint64_t pc);
     int get_idx(uint64_t pc);
@@ -109,7 +109,7 @@ public:
 
     Segment() : numEntries(0), entries(NULL) {}
     Segment(unsigned nEntries);
-    ~Segment();
+    virtual ~Segment();
 
     bool contains(uint64_t pc);
     void reset();
@@ -132,7 +132,7 @@ private:
 public:
     SLRUMCache() : numEntries(0), protectedSeg(NULL), probationarySeg(NULL), savedState(NULL) {}
     SLRUMCache(unsigned nEntries);
-    ~SLRUMCache();
+    virtual ~SLRUMCache();
 
     int access(uint64_t pc);
     int get_idx(uint64_t pc);
@@ -144,6 +144,18 @@ public:
     uint64_t sizeB() {
         return protectedSeg->sizeB() + probationarySeg->sizeB() + (numEntries * 8);
     }
+};
+
+class FixedMCache : public MissCache
+{
+private:
+    unsigned numEntries;
+    uint64_t* savedState;
+public:
+    FixedMCache(uint64_t* pcs, unsigned n);
+    virtual ~FixedMCache();
+    int get_idx(uint64_t pc);
+    uint64_t sizeB() {return numEntries * 8;}
 };
 
 #endif

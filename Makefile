@@ -14,12 +14,13 @@ TRACE=$(shell ls ChampSim/dpc3_traces/ | grep $(TRACE_ID))
 all:
 	echo "Please refer to the README.md in ChampSim/ for detailed instructions"
 
-sandbox perceptron static bimodal gshare bplog tage:
+sandbox perceptron static bimodal gshare bplog tage ltage:
 	cd ChampSim && \
 	bash build_champsim.sh \
 	$@ $(L1I_PRE) $(L1D_PRE) $(L2_PRE) $(LLC_PRE) $(LLC_REP) 1
 
-run_sandbox run_perceptron run_static run_bimodal run_gshare run_bplog run_tage:
+run_sandbox run_perceptron run_static run_bimodal run_gshare run_bplog \
+run_tage run_ltage:
 	cd ChampSim && \
 	bash run_champsim.sh $(subst run_,,$@)-$(L1I_PRE)-$(L1D_PRE)-$(L2_PRE)-\
 	$(LLC_PRE)-$(LLC_REP)-1core $(N_WARM) $(N_SIM) $(TRACE)

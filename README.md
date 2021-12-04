@@ -2,6 +2,12 @@
 
 ## Updates
 
+## 12.4
+
+* Added LTAGE predictor in [ltage.cc](ChampSim/branch/bp_candidates/ltage.cc)
+* Changed all destructors in [bp_candidates.h](ChampSim/inc/bp_candidates.h) 
+and [miss_cache.h](ChampSim/inc/miss_cache.h) to virtual
+
 ### 11.30
 
 * Add confidence level to NestLoop predictor in [nestloop.cc](ChampSim/branch/bp_candidates/nestloop.cc)

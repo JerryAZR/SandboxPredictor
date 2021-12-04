@@ -44,11 +44,20 @@ void O3_CPU::initialize_branch_predictor()
     // predictor[cpu] = new Perceptron(8, 512, 8);
 
     /* TAGE predictor */
-    Predictor* base = new Gshare(12, 2);
+    Predictor* base = new Gshare(11, 2);
     Predictor* tage = new TAGE(base, 4, 9);
     Perceptron prototype(16,1,8);
     MissCache* mCache = new SLRUMCache();
-    predictor[cpu] = new VIP<Perceptron>(tage, prototype, mCache, 4, 256);
+    unsigned nPrivates = 4;
+    // Fixed cache
+    // uint64_t all_pcs[] = {
+    //     0x00404833,
+    //     0x0040483a,
+    //     0x004049e8,
+    //     0x0040638e
+    // };
+    // MissCache* mCache = new FixedMCache(all_pcs, nPrivates);
+    predictor[cpu] = new VIP<Perceptron>(tage, prototype, mCache, nPrivates, 256, 8);
 
     // NestLoop prototype = NestLoop();
     // predictor[cpu] = new VIP<NestLoop>(tage, prototype, mCache, 8, 256);

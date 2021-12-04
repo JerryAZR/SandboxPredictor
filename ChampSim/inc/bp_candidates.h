@@ -12,6 +12,7 @@ typedef struct Prediction
 
     Prediction(bool taken = false, int confidence = 0)
     : taken(taken), confidence(confidence) {}
+    virtual ~Prediction() {}
 
     Prediction operator!() {return Prediction(!taken, confidence);}
     Prediction operator~() {return Prediction(!taken, confidence);}
@@ -164,7 +165,7 @@ private:
 public:
     NestLoop();
     NestLoop(const NestLoop& other);
-    ~NestLoop();
+    virtual ~NestLoop();
 
     Prediction predict(uint64_t pc);
     void update(uint64_t pc, bool taken);
@@ -187,7 +188,7 @@ private:
     
 public:
     Tournament(Predictor* bp1, Predictor* bp2, unsigned nbuckets = NUM_BUCKET);
-    ~Tournament();
+    virtual ~Tournament();
 
     Prediction predict(uint64_t pc);
     void update(uint64_t pc, bool taken);
@@ -251,7 +252,7 @@ private:
     int usefulMax;
 public:
     TagTable(unsigned idxLen, unsigned tagLen);
-    ~TagTable();
+    virtual ~TagTable();
 
     uint64_t get_idx(uint64_t pc, uint64_t history);
     uint64_t get_tag(uint64_t pc, uint64_t history);
@@ -285,11 +286,28 @@ private:
     unsigned resetMask;
 public:
     TAGE(Predictor* base, unsigned nTables, unsigned idxLen);
-    ~TAGE();
+    virtual ~TAGE();
 
     Prediction predict(uint64_t pc);
     void update(uint64_t pc, bool taken);
     void reset();
+    uint64_t sizeB();
+};
+
+class LTAGE : public Predictor
+{
+private:
+    TAGE* tageBP;
+    NestLoop* loopBP;
+    unsigned loopThreshold;
+public:
+    LTAGE(TAGE* tageBP, unsigned loopTH = 90);
+    virtual ~LTAGE();
+
+    Prediction predict(uint64_t pc);
+    void update(uint64_t pc, bool taken);
+    void reset();
+    std::string debug_info();
     uint64_t sizeB();
 };
 
