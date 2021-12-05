@@ -1,0 +1,124 @@
+#include "ooo_cpu.h"
+#include "bp_candidates.h"
+#include "miss_cache.h"
+
+#include <fstream>
+#include <sstream>
+#include <bitset>
+
+#define NUM_BINS 64
+
+Predictor* predictor[NUM_CPUS];
+
+// variables to keep track of prediction history (only used for log generation)
+uint64_t globalHistory;
+// We could use a dict for local history, but this array will do for now
+uint64_t localHistory[NUM_BINS];
+
+bool predicted;
+unsigned branchCount;
+
+// Prediction log files
+const std::string fname = "branch.csv";
+std::ofstream fout;
+const std::string debugfname = "debug_info.log";
+std::ofstream debugfout;
+
+// helper functions
+std::string int2hex(uint64_t pc);
+std::string int2bin(uint64_t hist);
+
+/**
+ * Increased upon mispredict, decreased over time.
+ * Triggers a reset on the corresponding predictor when above certain threshold
+ */
+uint64_t reset_score[NUM_CPUS];
+
+void O3_CPU::initialize_branch_predictor()
+{
+    cout << "CPU " << cpu << " BPLog branch predictor ";
+
+    // Initialize predictor
+
+    /* Perceptron predictor */
+    // predictor[cpu] = new Perceptron(8, 512, 8);
+
+    /* TAGE predictor */
+    Predictor* base = new Gshare(12, 2);
+    TAGE* tage = new TAGE(base, 4, 9);
+    predictor[cpu] = new LTAGE(tage);
+
+    // NestLoop prototype = NestLoop();
+    // predictor[cpu] = new VIP<NestLoop>(tage, prototype, mCache, 8, 256);
+
+
+    cout << predictor[cpu]->sizeB() << " Bytes" << endl;
+
+    // Initialize history
+    globalHistory = 0;
+    memset(localHistory, 0, NUM_BINS * sizeof(uint64_t));
+
+    // Open log file
+    fout.open(fname);
+    fout << "ID,PC,Predicted,Actual,Global History,Local History";
+    fout << std::endl;
+    branchCount = 0;
+    debugfout.open(debugfname);
+}
+
+/**
+ * @brief Predict if the input branch instruction will be taken or not
+ * 
+ * @param instr The input branch instruction
+ * @return true (1) if predicted taken, false (0) otherwise
+ * 
+ * TODO: Try more basic & complex predictor combinations
+ * and update & reset policies
+ */
+uint8_t O3_CPU::predict_branch(ooo_model_instr instr)
+{
+    predicted = predictor[cpu]->predict(instr.ip).taken;
+
+    return predicted;
+}
+
+/**
+ * @brief Update the internal states of predictors
+ * 
+ * @param instr The branch instruction with known outcome
+ */
+void O3_CPU::last_branch_result(ooo_model_instr instr)
+{
+    predictor[cpu]->update(instr.ip, instr.branch_taken);
+
+    unsigned idx = instr.ip % NUM_BINS;
+
+    // Write to log (do this before updating history)
+    fout << branchCount++ << ",";
+    fout << int2hex(instr.ip) << ",";
+    fout << predicted << ",";
+    fout << (instr.branch_taken == 1 ? "1" : "0") << ",";
+    // Use hex instead of bin for history to save disk space.
+    fout << int2hex(globalHistory) << ",";
+    fout << int2hex(localHistory[idx]) << std::endl;
+
+    if (branchCount % 1024 == 0) {
+        debugfout << predictor[cpu]->debug_info();
+    }
+
+    // Update history
+    globalHistory = (globalHistory << 1) | (instr.branch_taken ? 1 : 0);
+    localHistory[idx] = (localHistory[idx] << 1) | (instr.branch_taken ? 1 : 0);
+}
+
+std::string int2hex(uint64_t pc) {
+    std::stringstream sstream;
+    sstream << std::hex << pc;
+    return sstream.str();
+}
+
+std::string int2bin(uint64_t hist) {
+    std::stringstream sstream;
+    sstream << std::bitset<64>(hist);
+    return sstream.str();
+}
