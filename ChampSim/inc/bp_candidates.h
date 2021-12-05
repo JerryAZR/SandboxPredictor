@@ -38,12 +38,14 @@ class Predictor
             return totalScore;
         }
     public:
+        virtual ~Predictor() {}
         virtual Prediction predict(uint64_t pc) {return Prediction(true, 0);}
         virtual Prediction predict(uint64_t pc, uint64_t addon,
             uint32_t addon_len = 0) {return predict(pc);}
         virtual void update(uint64_t pc, bool taken) {}
         virtual void updateHistory(bool taken) {}
         virtual void reset() {}
+        virtual unsigned getThreshold() {return 0;}
         virtual uint64_t sizeB() {return 0;}
         virtual std::string debug_info() {return "";}
 };
@@ -119,7 +121,10 @@ public:
     Prediction predict(uint64_t pc, uint64_t addon, uint32_t addon_len = 0);
     void update(uint64_t pc, bool taken);
     void reset();
-    uint64_t sizeB() {return (GHRLen + 1) * weightLen * tableSize / 8;}
+    unsigned getThreshold() {return GHRLen * 2;}
+    uint64_t sizeB() {
+        return ((GHRLen + 1) * weightLen * tableSize / 8) + (GHRLen / 8);
+    }
 };
 
 #define GSHARE_GHR_LEN 8
@@ -170,6 +175,7 @@ public:
     Prediction predict(uint64_t pc);
     void update(uint64_t pc, bool taken);
     void reset();
+    unsigned getThreshold() {return 90;}
     std::string debug_info();
 };
 
@@ -208,8 +214,11 @@ class VIP : public Predictor
         unsigned GHRLen;
         unsigned currCount;
         uint64_t history;
+        int* scoreboard;
+        bool lastDefault;
+        bool lastPrivate;
 
-        std::unordered_map<uint64_t, bool> lastPrediction;
+        void updateScoreBoard(int idx, bool dPred, bool pPred, bool real);
     public:
         VIP(Predictor* defaultBP, T& prototypeBP, MissCache* mCache,
             unsigned mCacheSize = 8, unsigned snapInterval = 2048,

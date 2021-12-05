@@ -3,6 +3,10 @@
 template class VIP<Perceptron>;
 template class VIP<NestLoop>;
 
+// range of scoreboard counter
+#define MIN_SCORE -2
+#define MAX_SCORE 1
+
 /**
  * @brief Construct a new VIP<T>::VIP object
  * 
@@ -26,6 +30,7 @@ VIP<T>::VIP(Predictor* defaultBP, T& prototypeBP, MissCache* mCache,
     for (unsigned i = 0; i < nEntries; i++) {
         privateBP[i] = new T(prototypeBP);
     }
+    scoreboard = (int*) malloc(nEntries * sizeof(int));
     reset();
 }
 
@@ -38,18 +43,41 @@ Prediction VIP<T>::predict(uint64_t pc) {
         pred = defaultPred;
     } else {
         privatePred = privateBP[privateIdx]->predict(pc, history, GHRLen);
-        pred = privatePred;
+        lastPrivate = privatePred.taken;
+        // Score / competition based selection
+        pred = scoreboard[privateIdx] < 0 ? privatePred : defaultPred;
+
+        // Confidence-based selection
+        // pred = privatePred.confidence > privateBP[privateIdx]->getThreshold() ?
+        //     privatePred : defaultPred;
         // Only use for Nestloop predictor
         // pred = (privatePred.confidence > 90) ? privatePred : defaultPred;
     }
     // Always access cache with default prediction
-    lastPrediction[pc] = defaultPred.taken;
+    lastDefault = defaultPred.taken;
     return pred;
+}
+
+/**
+ * @brief Private function. Update scoreboard based on previous outcome.
+ * 
+ * @tparam T private predictor type
+ * @param idx Index of current branch in the private predictor table
+ * @param dPred default predictor outcome
+ * @param pPred private predictor outcome
+ * @param real actual branch outcome
+ */
+template <class T>
+void VIP<T>::updateScoreBoard(int idx, bool dPred, bool pPred, bool real) {
+
+    if ((idx < 0) || (dPred == pPred)) return;
+    if (dPred == real && scoreboard[idx] < MAX_SCORE) scoreboard[idx]++;
+    else if (scoreboard[idx] > MIN_SCORE) scoreboard[idx]--;
 }
 
 template <class T>
 void VIP<T>::update(uint64_t pc, bool taken) {
-    if (taken != lastPrediction[pc]) {
+    if (taken != lastDefault) {
         mCache->access(pc);
     }
     int privateIdx = mCache->get_idx(pc);
@@ -59,9 +87,10 @@ void VIP<T>::update(uint64_t pc, bool taken) {
     // Conditionally update the private predictor
     if (privateIdx != -1) {
         privateBP[privateIdx]->update(pc, taken);
+        updateScoreBoard(privateIdx, lastDefault, lastPrivate, taken);
     }
 
-    // Take a snapshot on miss cache on fixed interval
+    // Take a snapshot of miss cache on fixed interval
     currCount++;
     if (currCount == snapInterval) {
         currCount = 0;
@@ -78,6 +107,7 @@ void VIP<T>::reset() {
     mCache->reset();
     for (unsigned i = 0; i < mCacheSize; i++) {
         privateBP[i]->reset();
+        scoreboard[i] = 0;
     }
     currCount = 0;
     history = 0;
@@ -97,5 +127,6 @@ uint64_t VIP<T>::sizeB() {
     uint64_t privateSize = mCacheSize * privateBP[0]->sizeB();
     uint64_t cacheSize = mCache->sizeB();
     uint64_t defaultSize = defaultBP->sizeB();
-    return privateSize + cacheSize + defaultSize;
+    uint64_t scoreboardSize = 2 * mCacheSize / 8;
+    return privateSize + cacheSize + defaultSize + scoreboardSize;
 }

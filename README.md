@@ -7,6 +7,7 @@
 * Added LTAGE predictor in [ltage.cc](ChampSim/branch/bp_candidates/ltage.cc)
 * Changed all destructors in [bp_candidates.h](ChampSim/inc/bp_candidates.h) 
 and [miss_cache.h](ChampSim/inc/miss_cache.h) to virtual
+* Added competition based decision logic in [vip.cc](ChampSim/branch/bp_candidates/vip.cc)
 
 ### 11.30
 
