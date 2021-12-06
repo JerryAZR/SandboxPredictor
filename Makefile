@@ -24,9 +24,9 @@ run_tage run_ltage:
 	cd ChampSim && \
 	bash run_champsim.sh $(subst run_,,$@)-$(L1I_PRE)-$(L1D_PRE)-$(L2_PRE)-\
 	$(LLC_PRE)-$(LLC_REP)-1core $(N_WARM) $(N_SIM) $(TRACE)
-	grep "Accuracy\|IPC\|branch predictor" ChampSim/results_$(N_SIM)M/$(TRACE)-\
-	$(subst run_,,$@)-$(L1I_PRE)-$(L1D_PRE)-$(L2_PRE)-$(LLC_PRE)-$(LLC_REP)-\
-	1core.txt
+	grep "Accuracy\|CPU 0 cumulative IPC\|branch predictor" \
+	ChampSim/results_$(N_SIM)M/$(TRACE)-$(subst run_,,$@)-$(L1I_PRE)-$(L1D_PRE)\
+	-$(L2_PRE)-$(LLC_PRE)-$(LLC_REP)-1core.txt
 
 analyze:
 	cd ChampSim && python3 analyze.py branch.csv
