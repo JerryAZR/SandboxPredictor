@@ -44,7 +44,7 @@ void O3_CPU::initialize_branch_predictor()
     // predictor[cpu] = new Perceptron(8, 512, 8);
 
     /* TAGE predictor */
-    Predictor* base = new Gshare(11, 2);
+    Predictor* base = new Gshare(10, 2);
     TAGE* tage = new TAGE(base, 4, 9);
     Predictor* ltage = new LTAGE(tage);
     Perceptron prototype(16,1,8);

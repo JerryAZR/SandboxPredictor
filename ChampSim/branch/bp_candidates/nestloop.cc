@@ -2,120 +2,197 @@
 #include <cstring>
 #include <stdlib.h>
 
-NestLoop::NestLoop()
+NestLoop::NestLoop(unsigned counter_len, unsigned idx_len) : 
+counter_len(counter_len), idx_len(idx_len)
 {
+    max_count = (1 << counter_len) - 1;
+    num_entries = 1 << idx_len;
+    max_confidence = 3;
+    max_age = 255;
+    assoc = 4;
+    history = 0;
+
+    content = (nestloop_entry_t*) malloc(num_entries * assoc * sizeof(nestloop_entry_t));
+
     reset();
 }
 
 NestLoop::NestLoop(const NestLoop& other)
 {
-    loop_counts = other.loop_counts;
-    cur_counts = other.cur_counts;
-    local_pc = other.local_pc;
-    total_pred = other.total_pred;
-    correct_pred = other.correct_pred;
-    last_pred = other.last_pred;
-    count_ready = other.count_ready;
+    counter_len = other.counter_len;
+    idx_len = other.idx_len;
+    max_count = other.max_count;
+    num_entries = other.num_entries;
+    content = other.content;
+    assoc = other.assoc;
+    max_confidence = other.max_confidence;
+    max_age = other.max_age;
+    history = other.history;
 }
 
 NestLoop::~NestLoop()
 {
+    free(content);
+}
+
+void NestLoop::reset(){
+    for (unsigned i = 0; i < assoc * num_entries; i++) {
+        content[i].tag = 0;
+        content[i].age = 0;
+        content[i].confidence = 0;
+        content[i].loop_counts = 0;
+        content[i].cur_counts = 0;
+        content[i].last_pred = true;
+        content[i].count_ready = false;
+    }
+}
+
+unsigned NestLoop::get_idx(uint64_t pc) {
+    uint64_t mask1 = (1 << (idx_len + 2)) - 4;
+    uint64_t mask2 = (1 << idx_len) - 1;
+
+    return (pc & mask1) ^ (history & mask2);
+    
+    // return ((pc << (62 - idx_len)) >> (64 - idx_len)) ^ (history & mask2);
+}
+
+unsigned NestLoop::get_tag(uint64_t pc) {
+    return pc >> (idx_len + 2);
+}
+
+int NestLoop::lookup(uint64_t pc){
+    unsigned idx = get_idx(pc);
+    unsigned targetTag = get_tag(pc);
+    for(unsigned i = 0; i < assoc; i++){
+        if (targetTag == content[idx + i].tag){
+            return idx + i;  
+        } 
+    }
+    return -1;
+}
+
+bool NestLoop::add(uint64_t pc){
+    unsigned idx = get_idx(pc);
+    unsigned newTag = get_tag(pc);
+    
+    for (unsigned i = 0; i < assoc; i++){
+        if (content[idx + i].age == 0) {
+            reset_entry(idx, i);
+            content[idx + i].tag = newTag;
+            return true;
+        }
+    }
+
+    decay(idx);
+    return false;
+}
+
+void NestLoop::reset_entry(unsigned idx, unsigned set)
+{
+    content[idx + set].confidence = 0;
+    content[idx + set].loop_counts = 0;
+    content[idx + set].cur_counts = 0;
+    content[idx + set].tag = 0;
+    content[idx + set].last_pred = true;
+    content[idx + set].count_ready = false;
+    content[idx + set].age = 255;
+}
+
+void NestLoop::decay(unsigned idx){
+    for (unsigned i = 0; i < assoc; i++){
+        content[idx + i].age = (content[idx + i].age > 0) ? 
+                            content[idx + i].age - 1 : content[idx + i].age;
+    }
 }
 
 Prediction NestLoop::predict(uint64_t pc)
 {
-    // Calculate current accuracy
-    int acc = correct_pred * 100 / total_pred;
-    // Increment total prediction count
-    total_pred++;
-
     // If it is a new branch, reset the counters and
     // update the pc, also take the loop
-    if(pc != local_pc){
-        local_pc = pc;
-        cur_counts = 0;
-        loop_counts = 0;
-        last_pred = true;
-        count_ready = false;
-        return Prediction(1, 50);
+    int entry = lookup(pc);
+    if(entry == -1){
+        return Prediction(true, 0);
     }
 
     // If loop count is ready, we use it to predict when
     // to exit the loop
-    if(count_ready){
-        if(cur_counts < loop_counts){
-            cur_counts++;
-            last_pred = true;
-            return Prediction(1, acc);
+    if(content[entry].count_ready && content[entry].age > 0){
+        if(content[entry].cur_counts < content[entry].loop_counts){
+            content[entry].cur_counts = (content[entry].cur_counts < max_count) ? 
+                                content[entry].cur_counts + 1 : content[entry].cur_counts;
+            content[entry].last_pred = true;
+            return Prediction(true, content[entry].confidence);
         } else {
-            cur_counts = 0;
-            last_pred = false;
-            return Prediction(0, acc);
+            content[entry].cur_counts = 0;
+            content[entry].last_pred = false;
+            return Prediction(false, content[entry].confidence);
         }
     // If loop count is not ready, we take the loop
     } else {
-        last_pred = true;
-        return Prediction(1, 50);
+        content[entry].last_pred = true;
+        return Prediction(true, 0);
     }
 }
 
 void NestLoop::update(uint64_t pc, bool taken)
 {
-    // We don't update on different pc
-    if(local_pc != pc){
-        return;
+    int entry = lookup(pc);
+    history = (history << 1) & taken;
+    if(entry == -1){
+        if(add(pc)){
+            entry = lookup(pc);
+        } else {
+            return;
+        }
     }
 
     // If last prediction was correct, increment
     // correct prediction count
-    if(taken == last_pred){
-        correct_pred++;
+    if(taken == content[entry].last_pred){
+        if(!taken){
+            content[entry].confidence = (content[entry].confidence < max_confidence) ? 
+                                    content[entry].confidence + 1 : content[entry].confidence;
+        }
+        content[entry].age = (content[entry].age > max_age) ? content[entry].age + 1 : content[entry].age;
     }
 
     // If loop count is not ready, we update the expected
     // number of iterations for the loop
-    if(!count_ready){
+    if(!content[entry].count_ready){
         // If the loop was taken, increment loop_counts
         if(taken){
-            loop_counts++;
+            content[entry].loop_counts = (content[entry].loop_counts < max_count) ? 
+                                    content[entry].loop_counts + 1 : content[entry].loop_counts;
         // If the loop was not taken, mark the loop count as ready
         } else {
-            count_ready = true;
+            content[entry].count_ready = true;
         }
     }
 
-    // Calculate prediction accuracy and number of wrong 
-    // predictions so far
-    float acc = (float)correct_pred / (float)total_pred;
-    uint32_t wrong_pred = total_pred - correct_pred; 
-
     // If loop count is ready and accuracy is low and it is not
     // because of small loops, reset the predictor and recount loop count
-    if (count_ready && acc < 0.875 && wrong_pred > 7){
-        total_pred = 0;
-        correct_pred = 0;
-        loop_counts = 0;
-        cur_counts = 0;
-        count_ready = false;
+    if (content[entry].count_ready && taken != content[entry].last_pred){
+        content[entry].age = 0;
     }
 }
 
-void NestLoop::reset()
+uint64_t NestLoop::sizeB()
 {
-    total_pred = 0;
-    correct_pred = 0;
-    loop_counts = 0;
-    cur_counts = 0;
-    local_pc = 0;
-    last_pred = true;
-    count_ready = false;
+    uint64_t entry_size = 10 + counter_len * 2 + (62 - idx_len);
+    return assoc * num_entries * entry_size / 8;
 }
 
 std::string NestLoop::debug_info()
 {
     std::stringstream ss;
-    ss << "PC: " << std::hex << local_pc;
-    ss << " loop count: " << std::dec << loop_counts;
+    for (unsigned i = 0; i < assoc * num_entries; i++) {
+        ss << "TAG: " << std::hex << content[i].tag;
+        ss << "; LOOP CNT: " << std::dec << content[i].loop_counts;
+        ss << "; CUR CNT: " << std::dec << content[i].cur_counts;
+        ss << "; AGE: " << std::dec << (uint64_t)content[i].age;
+        ss << "; CONF: " << std::dec << (uint64_t)content[i].confidence;
+        ss << "; PREV PRED: " << content[i].last_pred << std::endl;
+    }
     ss << std::endl;
     return ss.str();
 }

@@ -1,9 +1,9 @@
 #include "bp_candidates.h"
 
-LTAGE::LTAGE(TAGE* tageBP, unsigned loopTH)
-: tageBP(tageBP), loopThreshold(loopTH)
-{
-    loopBP = new NestLoop();
+LTAGE::LTAGE(TAGE* tageBP)
+: tageBP(tageBP) {
+    loopBP = new NestLoop(14, 4);
+    loopThreshold = loopBP->getThreshold();
 }
 
 LTAGE::~LTAGE() {
@@ -13,7 +13,7 @@ LTAGE::~LTAGE() {
 Prediction LTAGE::predict(uint64_t pc) {
     Prediction tagePred = tageBP->predict(pc);
     Prediction loopPred = loopBP->predict(pc);
-    return loopPred.confidence > loopThreshold ? loopPred : tagePred;
+    return loopPred.confidence >= loopThreshold ? loopPred : tagePred;
 }
 
 void LTAGE::update(uint64_t pc, bool taken) {

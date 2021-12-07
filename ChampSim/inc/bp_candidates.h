@@ -157,26 +157,60 @@ public:
     uint64_t sizeB() {return (1 << GHRLen) * counterLen / 8;}
 };
 
+typedef struct nestloop_entry_t
+{
+    uint8_t age;
+    uint64_t tag;
+    uint64_t confidence;
+    uint64_t loop_counts;
+    uint64_t cur_counts;
+    
+    bool last_pred;
+    bool count_ready;
+
+    nestloop_entry_t(uint8_t a = 255, uint64_t t = 0, uint8_t c = 0, uint64_t loop_counts = 0, 
+                uint64_t cur_counts = 0, bool last_pred = true, bool count_ready = false) :
+                    age(a), tag(t), confidence(c), loop_counts(loop_counts), 
+                    cur_counts(cur_counts), last_pred(last_pred), count_ready(count_ready) {}
+    bool isValid() {return age > 0 && count_ready;}
+    bool taken() {return cur_counts < loop_counts;}
+    Prediction toPrediction() {return Prediction(isValid() && taken(), confidence);}
+} nestloop_entry_t;
+
 class NestLoop : public Predictor
 {
 private:
-    int32_t loop_counts;
-    int32_t cur_counts;
-    uint64_t local_pc;
-    uint32_t total_pred;
-    uint32_t correct_pred;
-    bool last_pred;
-    bool count_ready;
+    unsigned assoc;
+    unsigned counter_len;
+    unsigned idx_len;
+    
+    unsigned max_count;
+    unsigned num_entries;
+    unsigned max_confidence;
+    unsigned max_age;
+
+    uint64_t history;
+
+    nestloop_entry_t* content;
+
 public:
-    NestLoop();
+    NestLoop(unsigned counter_len = 14, unsigned idx_len = 8);
     NestLoop(const NestLoop& other);
     virtual ~NestLoop();
 
     Prediction predict(uint64_t pc);
     void update(uint64_t pc, bool taken);
     void reset();
-    unsigned getThreshold() {return 90;}
+    uint64_t sizeB();
+    unsigned getThreshold() {return max_confidence;}
     std::string debug_info();
+private:
+    unsigned get_idx(uint64_t pc);
+    unsigned get_tag(uint64_t pc);
+    int lookup(uint64_t pc);
+    bool add(uint64_t pc);
+    void decay(unsigned idx);
+    void reset_entry(unsigned idx, unsigned set);
 };
 
 #define NUM_BUCKET 8
@@ -310,7 +344,7 @@ private:
     NestLoop* loopBP;
     unsigned loopThreshold;
 public:
-    LTAGE(TAGE* tageBP, unsigned loopTH = 90);
+    LTAGE(TAGE* tageBP);
     virtual ~LTAGE();
 
     Prediction predict(uint64_t pc);
