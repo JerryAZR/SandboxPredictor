@@ -21,7 +21,7 @@ if __name__ == "__main__":
     for trace in os.listdir(TRACE_DIR):
         if not trace.endswith(".xz"):
             continue
-        cmd = [MAKE, "run_perceptron", f"TRACE_ID={trace}"]
+        cmd = [MAKE, f"run_{predictor}", f"TRACE_ID={trace}"]
         output = subprocess.run(cmd, stdout=subprocess.PIPE)
         outstr = "".join([chr(value) for value in output.stdout])
         stats = re.findall(NUM_PATTERN, outstr)
