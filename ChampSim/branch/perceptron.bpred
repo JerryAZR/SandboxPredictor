@@ -165,6 +165,9 @@ void O3_CPU::initialize_branch_predictor()
     perceptron_state_buf_ctr[cpu] = 0;
     for (int i=0; i<NUM_PERCEPTRONS; i++)
         initialize_perceptron (&perceptrons[cpu][i]);
+    size_t size = (PERCEPTRON_HISTORY + 1) * PERCEPTRON_BITS * NUM_PERCEPTRONS / 8;
+    cout << "CPU " << cpu << " Perceptron branch predictor: ";
+    cout << size << " Bytes" << endl;
 }
 
 uint8_t O3_CPU::predict_branch(ooo_model_instr instr)
