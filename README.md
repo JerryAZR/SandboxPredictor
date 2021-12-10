@@ -94,7 +94,7 @@ always-taken (because only the pc is available during branch prediction)
 
 [Progress Report](https://docs.google.com/document/d/1Kbm3lSivZxMg2NZwRxZXS4C-Lj2yRoAvK5f_yQeKkyU/edit?usp=sharing)
 
-[Final Report](https://docs.google.com) (to be added)
+[Final Report](report.pdf)
 
 ## Evaluation
 
